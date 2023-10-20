@@ -16,7 +16,7 @@ This dataset is a labelled dataset from the Behavioral Risk Factor Surveillance 
 3. HighChol - Whether the person has high cholestrol or not 
     - 0: No high cholestrol
     - 1: High cholestrol
-4. CholCheck - Whether the person has high cholestrol or not 
+4. CholCheck - Whether the person has high cholestrol or not in 5 years
     - 0: No high cholestrol
     - 1: High cholestrol
 5. BMI - Person's Body Mass Index 
