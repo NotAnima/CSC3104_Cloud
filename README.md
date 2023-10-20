@@ -53,12 +53,8 @@ This dataset is a labelled dataset from the Behavioral Risk Factor Surveillance 
     - 3 = good 
     - 4 = fair 
     - 5 = poor
-16. MentHlth
-    - 0: No 
-    - 1: Yes
-17. PhysHlth
-    - 0: No 
-    - 1: Yes
+16. MentHlth -  How many days in the past 30 days was the person's mental health not good. Scale 1-30 days, includes stress, depression, and problems with emotions
+17. PhysHlth - how many days in the past 30 days was the person's physical health not good. scale 1-30 days, includes physical illness and injury, 
 18. DiffWalk - Whether the person has serious difficulty walking or climbing stairs
     - 0: No 
     - 1: Yes
