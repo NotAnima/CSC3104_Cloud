@@ -35,7 +35,7 @@ This dataset is a labelled dataset from the Behavioral Risk Factor Surveillance 
 10. Fruits - Whether the person consumes fruit 1 or more times per day
     - 0: No 
     - 1: Yes
-11. Veggies - Whether the person consumes fruit 1 or more times per day
+11. Veggies - Whether the person consumes vegetables 1 or more times per day
     - 0: No 
     - 1: Yes
 12. HvyAlcoholConsump - Whether the person is a Heavy drinker (adult men having more than 14 drinks per week and adult women having more than 7 drinks per week)
@@ -54,23 +54,42 @@ This dataset is a labelled dataset from the Behavioral Risk Factor Surveillance 
     - 4 = fair 
     - 5 = poor
 16. MentHlth -  How many days in the past 30 days was the person's mental health not good. Scale 1-30 days, includes stress, depression, and problems with emotions
-17. PhysHlth - how many days in the past 30 days was the person's physical health not good. scale 1-30 days, includes physical illness and injury, 
+17. PhysHlth - How many days in the past 30 days was the person's physical health not good. scale 1-30 days, includes physical illness and injury, 
 18. DiffWalk - Whether the person has serious difficulty walking or climbing stairs
     - 0: No 
     - 1: Yes
-19. Sex
+19. Sex - Person's sex
     - 0: Female
     - 1: Male
-20. Age - 13-level age category (AGEG5YR see codebook)
+20. Age - 13-level age category
     - 1: 18-24
+    - 2: 25-29
+    - 3: 30-34
+    - 4: 35-39
+    - 5: 40-44
+    - 6: 45-49
+    - 7: 50-54
+    - 8: 55-59
     - 9: 60-64
+    - 10: 65-69
+    - 11: 70-74
+    - 12: 75-79
     - 13: 80 or older 
-21. Education - Education level (EDUCA see codebook) scale 1-6
+21. Education - Education level on a scale of 1-6
     - 1: Never attended school or only kindergarten  
-    - 2: Grades 1 through 8
+    - 2: Grades 1 through 8 (Elementary)
+    - 3: Grades 9 through 11 (Some high school) 
+    - 4: Grade 12 or GED (High school graduate) 
+    - 5: College 1 year to 3 years (Some college or technical school) 
+    - 6: College 4 years or more (College graduate)
 22. Income - Income scale (INCOME2 see codebook) scale 1-8 
-    - 1: less than $10,000
-    - 5: less than $35,000
+    - 1: Less than $10,000
+    - 2: $10,000 to less than $15,000
+    - 3: $15,000 to less than $20,000
+    - 4: $20,000 to less than $25,000
+    - 5: $25,000 to less than $35,000
+    - 6: $35,000 to less than $50,000
+    - 7: $50,000 to less than $75,000
     - 8: $75,000 or more
 
 ## Points to do
