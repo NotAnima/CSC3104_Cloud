@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, classification_report
 import pickle
 
 def read_data(path):
@@ -20,20 +20,25 @@ def load_model(data):
     X = scaled_features
     y = data['Diabetes_012']
 
-    # Split the data into training and testing sets (80% train, 20% test)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Split the data into training and testing sets (80% train, 20% test), stratify to ensure equal proportions of class 0,1,2 diabetes indicator for the test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-    # Initialize and train the Logistic Regression model
-    logistic_model = LogisticRegression(random_state=42, max_iter=10000)  # to ensure convergence
-    logistic_model.fit(X_train, y_train)
+    # Initialize the Random Forest Classifier with controlled parameters for faster training
+    rf_model = RandomForestClassifier(n_estimators=10, max_depth=10, random_state=42, class_weight='balanced')
+    rf_model.fit(X_train, y_train)
 
-    return logistic_model
+    return rf_model
 
-    # y_pred = logistic_model.predict(X_test)
-    # accuracy = accuracy_score(y_test, y_pred)
-    # print(f"Accuracy: {accuracy}\n")
-    # class_report = classification_report(y_test, y_pred, zero_division=1)
-    # print(f"Classification Report:\n{class_report}\n")
+    # y_pred_rf = rf_model.predict(X_test)
+
+    # classification_metrics_rf = classification_report(y_test, y_pred_rf)
+    # conf_matrix_rf = confusion_matrix(y_test, y_pred_rf)
+
+    # print("Classification Report:")
+    # print(classification_metrics_rf)
+
+    # print("Confusion Matrix:")
+    # print(conf_matrix_rf)
 
 def save_model(model):
     with open("model.pkl", "wb") as file:
