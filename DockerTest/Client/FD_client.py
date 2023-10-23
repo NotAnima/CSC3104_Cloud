@@ -7,7 +7,7 @@ import FD_pb2
 import FD_pb2_grpc
 
 def run():
-    channel = grpc.insecure_channel("localhost:50051")
+    channel = grpc.insecure_channel("dereknan.click:50051")
     stub = FD_pb2_grpc.ModelServiceStub(channel)
 
     with open("test.tflite", "rb") as f:
