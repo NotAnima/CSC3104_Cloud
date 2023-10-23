@@ -6,9 +6,10 @@ import FD_pb2_grpc
 class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
 
     def UploadFile(self, request_iterator, context):
-        with open("received_file", "wb") as f:
+        with open("/storage/received_file.tflite", "wb") as f:
             for chunk in request_iterator:
                 f.write(chunk.content)
+        print("File received")
         return FD_pb2.UploadFileResponse(message="File received")
 
 def serve():
