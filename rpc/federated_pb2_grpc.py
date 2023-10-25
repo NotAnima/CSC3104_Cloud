@@ -15,9 +15,9 @@ class FederatedStub(object):
             channel: A grpc.Channel.
         """
         self.SendModel = channel.unary_unary(
-                '/federated.Federated/SendModel',
+                '/rpc.Federated/SendModel',
                 request_serializer=federated__pb2.ModelRequest.SerializeToString,
-                response_deserializer=federated__pb2.Model_Reply.FromString,
+                response_deserializer=federated__pb2.ModelReply.FromString,
                 )
 
 
@@ -36,11 +36,11 @@ def add_FederatedServicer_to_server(servicer, server):
             'SendModel': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModel,
                     request_deserializer=federated__pb2.ModelRequest.FromString,
-                    response_serializer=federated__pb2.Model_Reply.SerializeToString,
+                    response_serializer=federated__pb2.ModelReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'federated.Federated', rpc_method_handlers)
+            'rpc.Federated', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -59,8 +59,8 @@ class Federated(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/federated.Federated/SendModel',
+        return grpc.experimental.unary_unary(request, target, '/rpc.Federated/SendModel',
             federated__pb2.ModelRequest.SerializeToString,
-            federated__pb2.Model_Reply.FromString,
+            federated__pb2.ModelReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

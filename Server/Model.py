@@ -41,9 +41,12 @@ def load_model(data):
     # print(conf_matrix_rf)
 
 def save_model(model):
-    with open("model.pkl", "wb") as file:
+    with open("Server/model.pkl", "wb") as file:
         pickle.dump(model, file)
 
-data = read_data('diabetes_012_health_indicators_BRFSS2015.csv')
-model = load_model(data)
-save_model(model)
+def get_model():
+    data = read_data('diabetes_012_health_indicators_BRFSS2015.csv')
+    model = load_model(data)
+    save_model(model)
+
+get_model()

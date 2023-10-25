@@ -5,12 +5,12 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ModelRequest(_message.Message):
-    __slots__ = ["model"]
-    MODEL_FIELD_NUMBER: _ClassVar[int]
-    model: bytes
-    def __init__(self, model: _Optional[bytes] = ...) -> None: ...
+    __slots__ = ["data"]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    data: bytes
+    def __init__(self, data: _Optional[bytes] = ...) -> None: ...
 
-class Model_Reply(_message.Message):
+class ModelReply(_message.Message):
     __slots__ = ["message"]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
     message: str
