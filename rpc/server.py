@@ -6,22 +6,20 @@ import grpc
 import federated_pb2
 import federated_pb2_grpc
 
-from ..Server import Model
+import Model
 
 class Federated(federated_pb2_grpc.FederatedServicer):
     def SendModel(self, request, context):
-        file_name = 'model.pkl'
+        file_name = 'rpc/model.pkl'
         if check_file_exists(file_name):
             with open(file_name, "rb") as file:
                 model_data = file.read()
-
-            return federated_pb2.ModelReply(data=model_data)
         else:
             Model.get_model()
             with open(file_name, "rb") as file:
                 model_data = file.read()
 
-            return federated_pb2.ModelReply(data=model_data)
+        return federated_pb2.ModelReply(data=model_data)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
