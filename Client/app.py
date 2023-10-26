@@ -64,6 +64,29 @@ def sendModel():
     # If yes, then query from the local/cloud database and then send the model over to the server through the API
     return redirect(url_for("homePage"))
 
+@app.route('/doctors', methods=['GET', 'POST'])
+def doctors():
+    global personList
+    
+    if request.method == 'POST':
+        # Create an empty list to store the selected indexes
+        selected_indexes = []
+
+        dataList = request.form
+
+        # slice the dictionary to not include the last POST request key which is for 'submit'
+        for indexKey, value in list(dataList.items())[:-1]: 
+            if dataList[indexKey] != None:
+                # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
+                selected_indexes.append((int(indexKey)-1)) 
+
+        # remove those indexes that the doctor actually categorises
+        personList = popBasedOnIndexes(personList, selected_indexes)
+
+        # SEND THE CATEGORIZING INFORMATION HERE
+
+    return render_template('doctors.html', personList=personList)
+
 @app.route("/questions", methods=["POST", "GET"])
 def prediction():
     form = userForm()

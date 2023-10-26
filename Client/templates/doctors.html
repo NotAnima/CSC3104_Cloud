@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}The Doctors Backlog{% endblock %}
+{% block content %}
+{%  if personList|length >= 1 %}
+  <form action="/doctors" method = "post">
+      <div class="container-fluid">
+        {% for person in personList %}
+        <b><label for="Patient {{ loop.index+1 }}">Patient: {{ loop.index }}</label></b>
+        <br><br>
+        <div>
+          {% set person_info = person.getDetails() %}
+          Blood Pressure: <b>{{ person_info.HighBP}}</b><br>
+          Cholesterol Levels: <b>{{ person_info.HighChol }}</b><br>
+          Recent (5years) Cholesterol Levels: <b>{{ person_info.CholCheck }}</b><br>
+          BMI: <b>{{ person_info.BMI }}</b><br>
+          Smoking Status: <b>{{ person_info.Smoker }}</b><br>
+          Stroke Status: <b>{{ person_info.Stroke }}</b><br>
+          Heart Disease or Attack: <b>{{ person_info.HeartDiseaseorAttack }}</b><br>
+          Physical Activity: <b>{{ person_info.PhysActivity }}</b><br>
+          Fruits consumption: <b>{{ person_info.Fruits }}</b><br>
+          Veggies: <b>{{ person_info.Veggies }}</b><br>
+          Alcohol consumption: <b>{{ person_info.HvyAlcoholConsump }}</b><br>
+          Physical Health: <b>{{ person_info.PhysHlth }}</b><br>
+          Difficulties Walking: <b>{{ person_info.DiffWalk }}</b><br>
+          Gender: <b>{{ person_info.Sex }}</b><br>
+          Age Group: <b>{{ person_info.Age }}</b><br><br>
+        </div>
+
+        <input type="radio" name= "{{ loop.index }}" value="0">
+        <label for="patientNoDiabetes">No Diabetes</label><br>
+        <input type="radio" name= "{{ loop.index }}" value="1">
+        <label for="patientNoDiabetes">Pre-Diabetes</label><br>
+        <input type="radio" name= "{{ loop.index }}" value="2">
+        <label for="patientNoDiabetes">Diabetes</label><br><br>
+          
+        {% endfor %}
+        <br>
+        <input type="submit" name="submit" value="I hereby declare these patients categorised!">
+        <br><br><br>
+      </div>
+  </form>
+
+{% else %} 
+<div class="container-fluid">
+  <p>Currently {{ personList|length }} Patients to categorise... Go relax somewhere</p>
+</div>
+{% endif %}
+
+{% endblock %}
