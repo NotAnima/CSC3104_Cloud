@@ -1,4 +1,5 @@
-from flask import Flask, redirect, url_for, render_template
+from flask import Flask, redirect, url_for, render_template, request
+from wtforms import Form, BooleanField, StringField, PasswordField, validators
 
 app = Flask(__name__)
 
@@ -19,10 +20,18 @@ def sendModel():
     # If yes, then query from the local/cloud database and then send the model over to the server through the API
     return redirect(url_for("homePage"))
 
-@app.route("/predict")
+@app.route("/questions", methods=["POST", "GET"])
 def prediction():
+    if(request.method == "POST"):
+        bloodPressure = request.form["q1"]
+        print(bloodPressure)
+        return redirect(url_for("homePage"))
     # Get the prediction from the locally trained model
     # and then direct to the prediction page or render some javascript idk as an overlay
-    return redirect(url_for("homePage"))
+    else:
+        return render_template("questions.html")
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)
