@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
 
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
-
+#piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 def convertStrsToFloats(dictionary):
     for key, value in dictionary.items():
         dictionary[key] = float(value)
@@ -67,7 +67,7 @@ def sendModel():
 @app.route('/doctors', methods=['GET', 'POST'])
 def doctors():
     global personList
-    
+    # global piledCacheCategories
     if request.method == 'POST':
         # Create an empty list to store the selected indexes
         selected_indexes = []
@@ -80,6 +80,7 @@ def doctors():
                 # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
                 selected_indexes.append((int(indexKey)-1)) 
 
+        # to retrieve the 0,1,2 from each radio button, just add get the value from each key that iterates through
         # remove those indexes that the doctor actually categorises
         personList = popBasedOnIndexes(personList, selected_indexes)
 
