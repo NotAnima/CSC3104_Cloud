@@ -1,0 +1,14 @@
+syntax = "proto3";
+package rpc;
+
+service Federated {
+rpc SendModel (ModelRequest) returns (ModelReply) {}
+}
+
+message ModelRequest{
+    string message = 1;
+}
+
+message ModelReply{
+    bytes data = 1;
+}
