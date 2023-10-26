@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Federated Inventory Management Service{% endblock %}
+{% block content %}
+<form action="/questions" method = "post">
+    <div class="container-fluid">
+        <div class="container text-center" style="background-image: url('/static/images/cat.jpg')">
+            <p>Q1: Do you have high blood pressure?</p>
+              <input type="radio" id="0" name="q1" value="Low Blood Pressure">
+              <label for="q1">Low Blood Pressure</label><br>
+              <input type="radio" id="1" name="q1" value="High Blood Pressure">
+              <label for="q1">High Blood Pressure</label><br>
+            <input type="submit" value="Submit">
+        </div>
+    </div>
+</form>
+{% endblock %}
