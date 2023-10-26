@@ -1,18 +1,38 @@
-from __future__ import print_function
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+import pickle
 
-import logging
+def read_data(path):
+    file_path = path
+    data = pd.read_csv(file_path)
 
-import grpc
-import federated_pb2
-import federated_pb2_grpc
+    return data
 
-def run():
-    with grpc.insecure_channel('localhost:50051') as channel:
-        stub = federated_pb2_grpc.FederatedStub(channel)
-        response = stub.SendModel(federated_pb2.ModelRequest())
-        with open("received_model.pkl", "wb") as file:
-            file.write(response.data)
+def save_model(model):
+    with open("rpc/updated_model.pkl", "wb") as file:
+        pickle.dump(model, file)
 
-if __name__ == '__main__':
-    logging.basicConfig()
-    run()
+def load_model(file_path):
+    with open(file_path, "rb") as file:
+        model = pickle.load(file)
+    return model
+
+def train_existing_model(model, data):
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
+
+    X = scaled_features
+    y = data['Diabetes_012']
+
+    model.fit(X, y)
+
+    return model
+
+def extract_weights_and_biases(model):
+    weights = model.coef_
+    biases = model.intercept_
+    return weights, biases
