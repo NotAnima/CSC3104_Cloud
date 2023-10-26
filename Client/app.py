@@ -102,8 +102,5 @@ def prediction():
     # else condition for get request
     return render_template('questions.html', form=form)
 
-def doctorDeclares():
-
-
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
