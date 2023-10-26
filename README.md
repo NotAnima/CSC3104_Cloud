@@ -102,46 +102,46 @@ This dataset is a labelled dataset from the Behavioral Risk Factor Surveillance 
 ### Additional features(?)
 - No idea at the moment
 
-#### Required Questions
+## Required Questions
 
-# HighBP - Whether the person has high blood pressure or not.
+### HighBP - Whether the person has high blood pressure or not.
 - 0: Low blood pressure
 - 1: High blood pressure
-# HighChol - Whether the person has high cholestrol or not
+### HighChol - Whether the person has high cholestrol or not
 - 0: No high cholestrol
 - 1: High cholestrol
-# CholCheck - Whether the person has high cholestrol or not
+### CholCheck - Whether the person has high cholestrol or not
 - 0: No high cholestrol
 - 1: High cholestrol
-# BMI - Person's Body Mass Index
-# Smoker - Whether the person has smoked at least 100 cigarettes in their entire life
+### BMI - Person's Body Mass Index
+### Smoker - Whether the person has smoked at least 100 cigarettes in their entire life
 - 0: No
 - 1: Yes
-# Stroke - Whether the person has ever had a stroke
+### Stroke - Whether the person has ever had a stroke
 - 0: No
 - 1: Yes
-# HeartDisease - Whether the person has coronary heart disease (CHD) or myocardial infarction (MI)
+### HeartDisease - Whether the person has coronary heart disease (CHD) or myocardial infarction (MI)
 - 0: No
 - 1: Yes
-# PhysActiv - Whether person has physical activity in past 30 days - not including job
+### PhysActiv - Whether person has physical activity in past 30 days - not including job
 - 0: No
 - 1: Yes
-# Fruits - Whether the person consumes fruit 1 or more times per day
+### Fruits - Whether the person consumes fruit 1 or more times per day
 - 0: No
 - 1: Yes
-# Veggies - Whether the person consumes fruit 1 or more times per day
+### Veggies - Whether the person consumes fruit 1 or more times per day
 - 0: No
 - 1: Yes
-# HvyAlcoholConsump - Whether the person is a Heavy drinker (adult men having more than 14 drinks per week and adult women having more than 7 drinks per week)
+### HvyAlcoholConsump - Whether the person is a Heavy drinker (adult men having more than 14 drinks per week and adult women having more than 7 drinks per week)
 - 0: No
 - 1: Yes
-# DiffWalk - Whether the person has serious difficulty walking or climbing stairs
+### DiffWalk - Whether the person has serious difficulty walking or climbing stairs
 - 0: No
 - 1: Yes
-# Sex
+### Sex
 - 0: Female
 - 1: Male
-# Age - 13-level age category (AGEG5YR see codebook)
+### Age - 13-level age category (AGEG5YR see codebook)
 - 1: 18-24
 - 9: 60-64
 - 13: 80 or older
