@@ -16,7 +16,7 @@ def save_model(model):
     with open("rpc/model.pkl", "wb") as file:
         pickle.dump(model, file)
 
-def train_base_model(data):
+def train_base_model_with_csv(data):
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
 
@@ -49,7 +49,6 @@ def test_model(model, X_test, y_test):
 
 # Simulating average for weights and biases across 5 clients
 #
-
 weight = [
     [-0.18551107, -0.18695389, -0.13650731, -0.25427159,  0.00655888, -0.00074342,
      -0.02001863,  0.00551356,  0.00950881,  0.01496266,  0.06868512,  0.00186195,
@@ -106,5 +105,11 @@ def average_weights_and_biases(all_client_weights, all_client_biases):
     return average_weights, average_biases
 
 average_weights, average_biases = average_weights_and_biases(all_client_weights, all_client_biases)
-print(average_weights)
-print(average_biases)
+
+def train_base_model(average_weights, average_biases):
+
+    model = LogisticRegression(random_state=42, max_iter=1000)
+    model.coef_ = average_weights
+    model.intercept_ = average_biases
+
+    return model
