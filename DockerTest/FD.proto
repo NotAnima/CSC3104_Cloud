@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service ModelService {
+    rpc UploadFile(stream Chunk) returns (UploadFileResponse);
+}
+
+message Chunk {
+  bytes content = 1;
+}
+
+message UploadFileResponse {
+  string message = 1;
+}
