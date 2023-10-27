@@ -1,74 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Federated Inventory Management Service{% endblock %}
+{% block title %}Diabetes Pre-Diagnostics Prediction Service{% endblock %}
 {% block content %}
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/">Home</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Dropdown
-            </a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
-            </ul>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-          </li>
-        </ul>
-        <form class="d-flex" role="search">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success" type="submit">Search</button>
-        </form>
-      </div>
-    </div>
-  </nav>
 
-<div class="container-fluid">
-    <div class="container text-center" style="background-image: url('/static/images/cat.jpg')">
-        <div class="row align-items-start">
-            <div class="card" style="width: 18rem;">
-                <img src="{{ url_for('static', filename='images/cat.jpg') }}" class="card-img-top" alt="">
-                <div class="card-body">
-                  <h5 class="card-title">Train the Model</h5>
-                  <p class="card-text">Training the Model will call a HTTP request from the server side to give you the newest up-to-date model and store it locally and train it locally</p>
-                  <a href="/trainModel" class="btn btn-primary">Claim Model!</a>
-                </div>
-            </div>
-              
-            <div class="card" style="width: 18rem;">
-                <img src="{{ url_for('static', filename='images/cat2.jpg') }}" class="card-img-top" alt="">
-                <div class="card-body">
-                  <h5 class="card-title">Predict the restock</h5>
-                  <p class="card-text">Become Jesus Christ. You are now Jesus Christ. Cat Jesus Christ is also ok.</p>
-                  <a href="/predict" class="btn btn-primary">Prediction Magicks!</a>
-                </div>
-            </div>
-
-            <div class="card" style="width: 18rem;">
-                <img src="{{ url_for('static', filename='images/cat3.jpg') }}" class="card-img-top" alt="">
-                <div class="card-body">
-                  <h5 class="card-title">Send the Model to the Server</h5>
-                  <p class="card-text">Sending the Model to the Server will allow the centralized database to aggregate your model and further improve your future predictions!</p>
-                  <a href="/sendModel" class="btn btn-primary">Delivery Service!</a>
-                </div>
-            </div>
-
+<div class="container mt-4"><!--style="background: linear-gradient(45deg, #EF32FF8E, #2282FF8E);"-->
+  <div class="row">
+      <!-- Left Column for Text Content -->
+      <div class="col-md-8">
+          <h2>Understanding Diabetes</h2>
+          <p>Understanding the importance of early detection and awareness of diabetes is crucial for both individual well-being and public health. Diabetes, a group of metabolic disorders characterized by elevated blood sugar levels, can have far-reaching consequences if not recognized and managed promptly.</p>
+          <p>At its core, early detection of diabetes is vital for preventing a cascade of complications that can arise when blood sugar levels remain uncontrolled. These complications, ranging from cardiovascular diseases to kidney failure, neuropathy, and vision impairment, can severely impact a person's health and quality of life. Early intervention through medication, dietary adjustments, and regular monitoring can help mitigate these risks.</p>
+          <br><br><br><p><b><a href="/questions">Early diagnosis</a></b> of diabetes goes hand in hand with an improved quality of life. Managing blood sugar levels effectively allows individuals to lead active, healthier lives, reducing the symptoms of diabetes like excessive thirst, frequent urination, and fatigue.</p>
+          <p>Diabetes carries a significant economic burden, and early detection and management can help curb healthcare costs associated with diabetes-related hospitalizations, surgeries, and medications. By controlling the disease in its early stages, individuals can often avoid or minimize the need for costly medical interventions.</p>        
+          <p>For those at risk, such as individuals with prediabetes (elevated but not yet diabetic blood sugar levels), early intervention can prevent the progression to full-blown type 2 diabetes. Lifestyle changes, including weight management and improved dietary habits, can delay or even prevent the onset of the disease.</p>     
+          <br><br>
+          <p style="font-size:30px"> Disclaimer </p>
+          <p>We want to reassure our patients that when you use our services, your data is handled with the utmost care and commitment to ethical practices. Your personal information is securely stored within our organization, and we prioritize the protection of your privacy. Rest assured that we adhere to strict data privacy and security standards. Your data may be used for federated learning, which is a privacy-preserving technique that enables us to improve healthcare outcomes without compromising your confidentiality. We are dedicated to harnessing the power of your data for the collective good, following ethical principles and guidelines to ensure your trust and confidence in our services. Your well-being is at the heart of our mission, and we remain steadfast in our commitment to both your health and your privacy.</p>
         </div>
+      <!-- Right Column for Images -->
+      <div class="col-md-4">
+          <!-- First Infographic Div -->
+          <div class="infographic">
+              <img src="{{ url_for('static', filename='images/cat.jpg') }}" class="img-fluid" alt="Infographic 1">
+              <div class="infographic-caption">
+                  <p>Infographic Description</p>
+              </div>
+          </div>
+          <!-- Second Infographic Div -->
+          <div class="infographic">
+              <img src="{{ url_for('static', filename='images/cat2.jpg') }}" class="img-fluid" alt="Infographic 2">
+              <div class="infographic-caption">
+                  <p>Infographic Description</p>
+              </div>
+          </div>
+
+          <div class="infographic">
+            <img src="{{ url_for('static', filename='images/cat3.jpg') }}" class="img-fluid" alt="Infographic 2">
+            <div class="infographic-caption">
+                <p>Infographic Description</p>
+            </div>
+        </div>
+          <!-- ... (add more images here) ... -->
       </div>
+  </div>
 </div>
+
 {% endblock %}

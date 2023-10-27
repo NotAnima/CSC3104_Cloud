@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Questionnaire{% endblock %}
+{% block content %}
+
+<style>
+  .questions {
+    width: 70%; /* Takes up 70% of the viewport width (100% - 15% on both sides) */
+    margin: 0 25%; /* 15% margin on both sides */
+    padding: 20px;
+    box-sizing: border-box; /* Includes padding in the specified width */
+}
+</style>
+<form action="/questions" method = "post">
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+<div class = "questions">
+  <p><b>Please answer these 15 questions to get a pre-diagnosis prediction</b></p>
+   <div class="container-fluid">
+        <div>{{ form.q1.label }}
+        {{ form.q1() }}</div><br>
+
+        <div>{{ form.q2.label }}
+        {{ form.q2() }}</div><br>
+
+        <div>{{ form.q3.label }}
+        {{ form.q3() }}</div><br>
+
+        <div>{{ form.q4.label }}<br>
+        {{ form.q4() }}</div><br>
+
+        <div>{{ form.q5.label }}
+        {{ form.q5() }}</div><br>
+
+        <div>{{ form.q6.label }}
+        {{ form.q6() }}</div><br>
+        
+        <div>{{ form.q7.label }}
+        {{ form.q7() }}</div><br>
+
+        <div>{{ form.q8.label }}
+        {{ form.q8() }}</div><br>
+
+        <div>{{ form.q9.label }}
+        {{ form.q9() }}</div><br>
+
+        <div>{{ form.q10.label }}
+        {{ form.q10() }}</div><br>
+
+        <div>{{ form.q11.label}}
+        {{ form.q11() }}</div><br>
+
+        <div>{{ form.q12.label }}
+        {{ form.q12() }}</div><br>
+
+        <div>{{ form.q13.label }}
+        {{ form.q13() }}</div><br>
+
+        <div>{{ form.q14.label }}
+        {{ form.q14() }}</div><br>
+
+        <div>{{ form.q15.label }}
+        {{ form.q15() }}</div><br>
+        <div class="container">        
+          {{ form.submit() }}
+        </div>
+        <br><br><br>
+      </div>
+</div>
+</form>
+{% endblock %}
