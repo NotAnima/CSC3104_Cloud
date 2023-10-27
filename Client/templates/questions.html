@@ -2,12 +2,21 @@
 {% block title %}Questionnaire{% endblock %}
 {% block content %}
 
+<style>
+  .questions {
+    width: 70%; /* Takes up 70% of the viewport width (100% - 15% on both sides) */
+    margin: 0 25%; /* 15% margin on both sides */
+    padding: 20px;
+    box-sizing: border-box; /* Includes padding in the specified width */
+}
+</style>
 <form action="/questions" method = "post">
     {{ form.csrf_token }}
-    {{ form.hidden_tag() }}<!--style="background-image: url('/static/images/cat.jpg')"-->
-    <!--  <div class="container text-center" style="background-image: url('/static/images/cat.jpg')">-->
-   <div class="container-fluid" style ="background: linear-gradient(45deg, #55C8FF8E, #2282FF8E);">
-        <br><div>{{ form.q1.label }}
+    {{ form.hidden_tag() }}
+<div class = "questions">
+  <p><b>Please answer these 15 questions to get a pre-diagnosis prediction</b></p>
+   <div class="container-fluid">
+        <div>{{ form.q1.label }}
         {{ form.q1() }}</div><br>
 
         <div>{{ form.q2.label }}
@@ -51,9 +60,11 @@
 
         <div>{{ form.q15.label }}
         {{ form.q15() }}</div><br>
-
-        {{ form.submit() }}
+        <div class="container">        
+          {{ form.submit() }}
+        </div>
         <br><br><br>
       </div>
+</div>
 </form>
 {% endblock %}
