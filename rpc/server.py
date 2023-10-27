@@ -104,7 +104,7 @@ def average_weights_and_biases(all_client_weights, all_client_biases):
 
     return average_weights, average_biases
 
-average_weights, average_biases = average_weights_and_biases(all_client_weights, all_client_biases)
+# average_weights, average_biases = average_weights_and_biases(all_client_weights, all_client_biases)
 
 def train_base_model(average_weights, average_biases):
 
@@ -113,3 +113,9 @@ def train_base_model(average_weights, average_biases):
     model.intercept_ = average_biases
 
     return model
+
+# Train model with CSV file data and save to directory
+#
+data = read_data('diabetes_012_health_indicators_BRFSS2015.csv')
+model = train_base_model_with_csv(data)
+save_model(model)
