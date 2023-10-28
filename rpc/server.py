@@ -109,7 +109,7 @@ def average_weights_and_biases(all_client_weights, all_client_biases):
 
     return average_weights, average_biases
 
-average_weights, average_biases = average_weights_and_biases(all_client_weights, all_client_biases)
+# average_weights, average_biases = average_weights_and_biases(all_client_weights, all_client_biases)
 
 def train_base_model(average_weights, average_biases):
 
