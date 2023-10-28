@@ -2,15 +2,21 @@ from flask import Flask, redirect, url_for, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
+import diabetes
+import pandas as pd
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
-
+model = diabetes.load_model("model.pkl")
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
+answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
+
+# Utility functions
 def convertStrsToFloats(dictionary):
     for key, value in dictionary.items():
         dictionary[key] = float(value)
+
 
 class userForm(FlaskForm):
     q1 = RadioField('Q1: Do you have high blood pressure?', validators=[DataRequired()], choices=[('0', 'Low Blood Pressure'), ('1', 'High Blood Pressure')])
@@ -46,13 +52,34 @@ class personDetails():
     
     def getDetails(self):
         return self.information
+    
+    def getKeyValue(self):
+        return self.information.values()
 
 @app.route("/")
 def homePage():
     return render_template("index.html")
 
+@app.route("/results")
+def resultPage():
+    global personList
+    # TEMP TO BE REMOVED
+    practicePatient = {'HighBP': 1.0, 'HighChol': 1.0, 'CholCheck': 1.0, 'BMI': 21.0, 'Smoker': 1.0, 'Stroke': 1.0, 'HeartDiseaseorAttack': 1.0, 'PhysActivity': 1.0, 'Fruits': 1.0, 'Veggies': 1.0, 'HvyAlcoholConsump': 1.0, 'PhysHlth': 1.0, 'DiffWalk': 1.0, 'Sex': 1.0, 'Age': 5.0}
+    personList.append(personDetails(practicePatient))
+    # REMOVE EVERYTHING ABOVE
+    prediction_result = request.args.get("prediction_result")
+    return render_template("results.html",  prediction_result=prediction_result)
+
 @app.route("/trainModel")
 def trainModel():
+    trainingData = pd.DataFrame(answeredList)
+
+    # # Send data for training
+    model = diabetes.train_existing_model(model, trainingData)
+    diabetes.save_model(model)
+    # Reload model
+    model = diabetes.load_model("model.pkl")
+
     # Check if the model name hash matches with the local database hash model through an API
     # if not, then claim the new model through the API again
     # train the model iteratively locally and store the model's training weights and bias' in the database
@@ -66,12 +93,12 @@ def sendModel():
 
 @app.route('/doctors', methods=['GET', 'POST'])
 def doctors():
-    global personList
+    global personList, model, answeredList
+    
     # global piledCacheCategories
     if request.method == 'POST':
         # Create an empty list to store the selected indexes
         selected_indexes = []
-
         dataList = request.form
 
         # slice the dictionary to not include the last POST request key which is for 'submit'
@@ -80,11 +107,14 @@ def doctors():
                 # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
                 selected_indexes.append((int(indexKey)-1)) 
 
+        # Create a new list that only has the patient data and the doctors result if they have diabetes or not
+        for idx in selected_indexes:
+            personList[idx].information["Diabetes"] = request.form.get(str(idx+1))
+            answeredList.append(personList[idx].getDetails())
+        
         # to retrieve the 0,1,2 from each radio button, just add get the value from each key that iterates through
         # remove those indexes that the doctor actually categorises
         personList = popBasedOnIndexes(personList, selected_indexes)
-
-        # SEND THE CATEGORIZING INFORMATION HERE
 
     return render_template('doctors.html', personList=personList)
 
@@ -114,6 +144,14 @@ def prediction():
 
         # Instantiate the new person
         newPerson = personDetails(patientDetails)
+        # Use the more efficient way later on pls
+        # Transform data to be suitable for the model to predict
+        predict = []
+        for value in patientDetails.values():
+            predict.append(value)
+
+        scaled_features = diabetes.reshape_data(predict)
+        prediction_result = diabetes.make_prediction(model,scaled_features)
 
         # Add him/her into the local list of personLists for the doctors to use, for every person that their data is cleared up, they are cleared off the list
         personList.append(newPerson)
@@ -121,7 +159,7 @@ def prediction():
         print("New patient added!\n")
         print(f"Number of patients currently in list is: {len(personList)}")
 
-        return redirect(url_for("homePage"))
+        return redirect(url_for("resultPage", prediction_result=prediction_result))
     
     # else condition for get request
     return render_template('questions.html', form=form)

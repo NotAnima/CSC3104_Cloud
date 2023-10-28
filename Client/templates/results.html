@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Diabetes Pre-Diagnostics Prediction Service{% endblock %}
+{% block content %}
+
+<div class="container mt-4"><!--style="background: linear-gradient(45deg, #EF32FF8E, #2282FF8E);"-->
+  <div class="row">
+      <!-- Left Column for Text Content -->
+      <div class="col-md-8">
+        <p>Prediction Result: You likely {{ prediction_result }}</p>
+  </div>
+</div>
+
+{% endblock %}

@@ -13,7 +13,7 @@ def read_data(path):
     return data
 
 def save_model(model):
-    with open("rpc/model.pkl", "wb") as file:
+    with open("model.pkl", "wb") as file:
         pickle.dump(model, file)
 
 def train_base_model_with_csv(data):
@@ -24,7 +24,8 @@ def train_base_model_with_csv(data):
     y = data['Diabetes_012']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
+    print(X_train[0])
+    print(type(X_train))
     model = LogisticRegression(random_state=42, max_iter=1000)
     model.fit(X_train, y_train)
 
@@ -48,7 +49,11 @@ def test_model(model, X_test, y_test):
     print(conf_matrix)
 
 # Simulating average for weights and biases across 5 clients
-#
+
+def make_prediction(model, X_test):
+    y_pred = model.predict(X_test)
+    return y_pred
+
 weight = [
     [-0.18551107, -0.18695389, -0.13650731, -0.25427159,  0.00655888, -0.00074342,
      -0.02001863,  0.00551356,  0.00950881,  0.01496266,  0.06868512,  0.00186195,
@@ -113,3 +118,19 @@ def train_base_model(average_weights, average_biases):
     model.intercept_ = average_biases
 
     return model
+
+def load_model(file_path):
+    with open(file_path, "rb") as file:
+        model = pickle.load(file)
+    return model
+
+def reshape_data(data):
+    data = np.array(data)
+    data_reshaped = data.reshape(1, -1)
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(data_reshaped)
+    return scaled_features
+
+data = read_data("diabetes_15_columns.csv")
+model = train_base_model_with_csv(data)
+save_model(model)
