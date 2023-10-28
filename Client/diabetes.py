@@ -50,8 +50,8 @@ def test_model(model, X_test, y_test):
 
 def make_prediction(model, X_test):
     y_pred = model.predict(X_test)
-    prediction = y_pred[0]
-
+    prediction = int(y_pred[0])
+    # the prediction keeps coming back as 0 though...
     if (prediction == 0):
         answer = "do not have Diabetes"
     elif (prediction == 1):

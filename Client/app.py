@@ -107,6 +107,9 @@ def doctors():
                 # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
                 selected_indexes.append((int(indexKey)-1)) 
 
+        if (len(selected_indexes) < 3): # doctor must answer at least 3 questions
+            selected_indexes.clear()
+            return render_template('doctors.html', personList=personList)
         # Create a new list that only has the patient data and the doctors result if they have diabetes or not
         for idx in selected_indexes:
             personList[idx].information["Diabetes"] = request.form.get(str(idx+1))
