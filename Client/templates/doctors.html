@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}The Doctors Backlog{% endblock %}
 {% block content %}
-{%  if personList|length >= 3 %}
+{%  if personList|length >= 1 %}
   <form action="/doctors" method = "post">
       <div class="container-fluid">
         {% for person in personList %}

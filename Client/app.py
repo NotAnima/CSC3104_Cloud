@@ -4,10 +4,28 @@ from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 import diabetes
 import pandas as pd
+from os import environ
+from flask_mysqldb import MySQL
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:password@db/db'
+db = SQLAlchemy(app)
+
+class Patient(db.Model):
+    __tablename__ = 'patients'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    HighBP = db.Column(db.Float)
+    HighChol = db.Column(db.Float)
+
+with app.app_context():
+    db.create_all()
+
 model = diabetes.load_model("model.pkl")
+#db = MySQL(app)
+
+
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
@@ -58,6 +76,15 @@ class personDetails():
 
 @app.route("/")
 def homePage():
+    try:
+        cur = db.connection.cursor()
+        cur.execute("SELECT * FROM patients;")
+        data = cur.fetchall()
+        cur.close()
+        print("success")
+    except Exception as e:
+        return "Error: " + str(e)
+
     return render_template("index.html")
 
 @app.route("/results")
@@ -107,9 +134,6 @@ def doctors():
                 # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
                 selected_indexes.append((int(indexKey)-1)) 
 
-        if (len(selected_indexes) < 3): # doctor must answer at least 3 questions
-            selected_indexes.clear()
-            return render_template('doctors.html', personList=personList)
         # Create a new list that only has the patient data and the doctors result if they have diabetes or not
         for idx in selected_indexes:
             personList[idx].information["Diabetes"] = request.form.get(str(idx+1))
@@ -119,6 +143,7 @@ def doctors():
         # remove those indexes that the doctor actually categorises
         personList = popBasedOnIndexes(personList, selected_indexes)
 
+    flash("Successfully ")
     return render_template('doctors.html', personList=personList)
 
 @app.route("/questions", methods=["POST", "GET"])
@@ -168,4 +193,9 @@ def prediction():
     return render_template('questions.html', form=form)
 
 if __name__ == "__main__":
+    #with app.app_context():
+    #    db.create_all()
+    #    createTableQuery = "CREATE TABLE IF NOT EXISTS patients(id INT, HighBP FLOAT, HighChol FLOAT, PRIMARY KEY (id));"
+    #    cur = db.connection.cursor()
+    #    cur.execute(createTableQuery)
     app.run(debug=True, port=8080)
