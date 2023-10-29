@@ -5,3 +5,4 @@ flask==3.0.0
 pandas==2.1.1
 WTForm==1.0
 Flask-WTF==1.2.1
+schedule==1.2.1

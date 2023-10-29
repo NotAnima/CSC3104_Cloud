@@ -2,16 +2,45 @@ from flask import Flask, redirect, url_for, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
-import diabetes
+import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
 model = diabetes.load_model("model.pkl")
 readyToTrain = False
+newModel = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
+
+# Generate a unique ID for the client
+clientID = diabetes.generate_random_string()
+
+# Check with server side if model mathces up
+def scheduled_task():
+    global model, clientID
+    channel = grpc.insecure_channel("localhost:50051")
+    stub = FD_pb2_grpc.ModelServiceStub(channel)
+    trainingFile = diabetes.calculate_md5("model.pkl")
+    response = stub.DiffModel(FD_pb2.HashValue(clientHash=trainingFile))
+
+    if(response.HashResult):
+        # If hash result returns True meaning they are different, then local model can be pushed to the server for aggregation
+        weights, bias = diabetes.extract_weights_and_biases(model)
+        sent_weights = FD_pb2.sentWeights()
+        for w in weights:
+            sent_weights.weights.extend(w)
+        sent_weights.bias.extend(bias)
+        sent_weights.clientID = clientID
+        response = stub.sendWeight(sent_weights)
+        print(response.message)
+        print("The hash between client and server is " + str(response.HashResult))
+    # Your background task logic goes here
+    print("Scheduled task executed!")
+
+# Schedule the task to run every 10 minutes
+schedule.every(1).minutes.do(scheduled_task)
 
 # Utility functions
 def convertStrsToFloats(dictionary):
@@ -71,10 +100,10 @@ def resultPage():
     prediction_result = request.args.get("prediction_result")
     return render_template("results.html",  prediction_result=prediction_result)
 
-@app.route("/trainModel")
+@app.route("/trainModel", methods=['GET', 'POST'])
 def trainModel():
     # Check if at least 3 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
-    global answeredList, readyToTrain
+    global answeredList, readyToTrain, newModel, model
     print(answeredList)
     # Diagnosis results
     result = set()
@@ -102,6 +131,8 @@ def trainModel():
 
         # Clean up
         readyToTrain = False
+        # Since new data can be trained, know that it can be sent to the server to aggregate
+        newModel = True
         answeredList = []
         return redirect(url_for("homePage"))
 
@@ -190,5 +221,19 @@ def prediction():
     # else condition for get request
     return render_template('questions.html', form=form)
 
+# Create a threaded schedule task
+def run_scheduled_task():
+    while True:
+        schedule.run_pending()  # Check and run scheduled tasks
+        time.sleep(1) 
+
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    # Create a thread for the background task
+    task_thread = threading.Thread(target=run_scheduled_task)
+    task_thread.daemon = True  # Set as daemon to allow clean exit
+
+    # Start the background task thread
+    task_thread.start()
+
+    # Run Flask on the main thread
+    app.run()

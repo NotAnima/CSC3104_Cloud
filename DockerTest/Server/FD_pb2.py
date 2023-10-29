@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x08\x46\x44.proto\"\x18\n\x05\x43hunk\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\x0c\"%\n\x12UploadFileResponse\x12\x0f\n\x07message\x18\x01 \x01(\t2;\n\x0cModelService\x12+\n\nUploadFile\x12\x06.Chunk\x1a\x13.UploadFileResponse(\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x08\x46\x44.proto\"\x18\n\x05\x43hunk\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\x0c\"%\n\x12UploadFileResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"\x1f\n\tHashValue\x12\x12\n\nclientHash\x18\x01 \x01(\t\"\"\n\x0cHashCompared\x12\x12\n\nHashResult\x18\x01 \x01(\x08\">\n\x0bsentWeights\x12\x0f\n\x07weights\x18\x01 \x03(\x02\x12\x0c\n\x04\x62ias\x18\x02 \x03(\x02\x12\x10\n\x08\x63lientID\x18\x03 \x01(\t\"!\n\x0eweightResponse\x12\x0f\n\x07message\x18\x01 \x01(\t2\x90\x01\n\x0cModelService\x12+\n\nUploadFile\x12\x06.Chunk\x1a\x13.UploadFileResponse(\x01\x12&\n\tDiffModel\x12\n.HashValue\x1a\r.HashCompared\x12+\n\nsendWeight\x12\x0c.sentWeights\x1a\x0f.weightResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -24,6 +24,14 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_CHUNK']._serialized_end=36
   _globals['_UPLOADFILERESPONSE']._serialized_start=38
   _globals['_UPLOADFILERESPONSE']._serialized_end=75
-  _globals['_MODELSERVICE']._serialized_start=77
-  _globals['_MODELSERVICE']._serialized_end=136
+  _globals['_HASHVALUE']._serialized_start=77
+  _globals['_HASHVALUE']._serialized_end=108
+  _globals['_HASHCOMPARED']._serialized_start=110
+  _globals['_HASHCOMPARED']._serialized_end=144
+  _globals['_SENTWEIGHTS']._serialized_start=146
+  _globals['_SENTWEIGHTS']._serialized_end=208
+  _globals['_WEIGHTRESPONSE']._serialized_start=210
+  _globals['_WEIGHTRESPONSE']._serialized_end=243
+  _globals['_MODELSERVICE']._serialized_start=246
+  _globals['_MODELSERVICE']._serialized_end=390
 # @@protoc_insertion_point(module_scope)

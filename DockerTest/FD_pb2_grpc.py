@@ -19,12 +19,34 @@ class ModelServiceStub(object):
                 request_serializer=FD__pb2.Chunk.SerializeToString,
                 response_deserializer=FD__pb2.UploadFileResponse.FromString,
                 )
+        self.DiffModel = channel.unary_unary(
+                '/ModelService/DiffModel',
+                request_serializer=FD__pb2.HashValue.SerializeToString,
+                response_deserializer=FD__pb2.HashCompared.FromString,
+                )
+        self.sendWeight = channel.unary_unary(
+                '/ModelService/sendWeight',
+                request_serializer=FD__pb2.sentWeights.SerializeToString,
+                response_deserializer=FD__pb2.weightResponse.FromString,
+                )
 
 
 class ModelServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def UploadFile(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DiffModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def sendWeight(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -37,6 +59,16 @@ def add_ModelServiceServicer_to_server(servicer, server):
                     servicer.UploadFile,
                     request_deserializer=FD__pb2.Chunk.FromString,
                     response_serializer=FD__pb2.UploadFileResponse.SerializeToString,
+            ),
+            'DiffModel': grpc.unary_unary_rpc_method_handler(
+                    servicer.DiffModel,
+                    request_deserializer=FD__pb2.HashValue.FromString,
+                    response_serializer=FD__pb2.HashCompared.SerializeToString,
+            ),
+            'sendWeight': grpc.unary_unary_rpc_method_handler(
+                    servicer.sendWeight,
+                    request_deserializer=FD__pb2.sentWeights.FromString,
+                    response_serializer=FD__pb2.weightResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -62,5 +94,39 @@ class ModelService(object):
         return grpc.experimental.stream_unary(request_iterator, target, '/ModelService/UploadFile',
             FD__pb2.Chunk.SerializeToString,
             FD__pb2.UploadFileResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DiffModel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ModelService/DiffModel',
+            FD__pb2.HashValue.SerializeToString,
+            FD__pb2.HashCompared.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def sendWeight(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ModelService/sendWeight',
+            FD__pb2.sentWeights.SerializeToString,
+            FD__pb2.weightResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

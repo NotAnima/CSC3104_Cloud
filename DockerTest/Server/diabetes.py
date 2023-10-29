@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-import pickle, hashlib, string, secrets
+import pickle, hashlib
 
 def read_data(path):
     file_path = path
@@ -123,12 +123,3 @@ def calculate_md5(file_path):
         for chunk in iter(lambda: file.read(4096), b""):
             md5_hash.update(chunk)
     return md5_hash.hexdigest()
-
-def generate_random_string(length=10):
-    # Define the character set from which to generate the string
-    characters = string.ascii_letters + string.digits
-
-    # Generate a random string of the specified length
-    random_string = ''.join(secrets.choice(characters) for _ in range(length))
-
-    return random_string
