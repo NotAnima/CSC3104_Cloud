@@ -8,6 +8,7 @@ import pandas as pd
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
 model = diabetes.load_model("model.pkl")
+readyToTrain = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
@@ -72,18 +73,43 @@ def resultPage():
 
 @app.route("/trainModel")
 def trainModel():
-    trainingData = pd.DataFrame(answeredList)
+    # Check if at least 3 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
+    global answeredList, readyToTrain
+    print(answeredList)
+    # Diagnosis results
+    result = set()
+    if (not readyToTrain):
+        for data_dict in answeredList:
+            if len(result) < 2:
+                print("System not ready yet for training")
+                if "Diabetes" in data_dict:
+                    result.add(data_dict["Diabetes"])
+            else:
+                print("System ready to be trained")
+                readyToTrain = True
+                break
 
-    # # Send data for training
-    model = diabetes.train_existing_model(model, trainingData)
-    diabetes.save_model(model)
-    # Reload model
-    model = diabetes.load_model("model.pkl")
+    if (readyToTrain and request.method == 'POST'):
+        print("Training has started")
+        # Convert  of answered and diagnosed by the doctor into a pandas dataframe
+        trainingData = pd.DataFrame(answeredList)
+
+        # # Send data for training
+        model = diabetes.train_existing_model(model, trainingData)
+        diabetes.save_model(model)
+        # Reload model
+        model = diabetes.load_model("model.pkl")
+
+        # Clean up
+        readyToTrain = False
+        answeredList = []
+        return redirect(url_for("homePage"))
 
     # Check if the model name hash matches with the local database hash model through an API
     # if not, then claim the new model through the API again
     # train the model iteratively locally and store the model's training weights and bias' in the database
-    return redirect(url_for("homePage"))
+    return render_template("training.html", readyToTrain=readyToTrain)
+
 @app.route("/sendModel")
 def sendModel():
     # Check if the model name hash matches with the local database hash model through an API
@@ -107,9 +133,6 @@ def doctors():
                 # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
                 selected_indexes.append((int(indexKey)-1)) 
 
-        if (len(selected_indexes) < 3): # doctor must answer at least 3 questions
-            selected_indexes.clear()
-            return render_template('doctors.html', personList=personList)
         # Create a new list that only has the patient data and the doctors result if they have diabetes or not
         for idx in selected_indexes:
             personList[idx].information["Diabetes"] = request.form.get(str(idx+1))

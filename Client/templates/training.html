@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}AI Training Model{% endblock %}
+{% block content %}
+{% if readyToTrain %}
+<form action="/trainModel" method = "post">
+<div class = "training">
+<p><b>Model is ready for training</b></p>
+ <div class="container-fluid">
+      <div class="container">        
+          <button>Start Training</button>
+      </div>
+      <br><br><br>
+    </div>
+</div>
+</form>
+{% else %}
+<div class="container mt-4"><!--style="background: linear-gradient(45deg, #EF32FF8E, #2282FF8E);"-->
+  <div class="row">
+      <!-- Left Column for Text Content -->
+      <div class="col-md-8">
+        <p>Model not ready for training yet, please gather more</p>
+  </div>
+</div>
+
+{% endif%}
+
+{% endblock %}
