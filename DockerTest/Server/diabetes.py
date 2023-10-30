@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import pickle, hashlib
+from joblib import dump, load
 
 def read_data(path):
     file_path = path
@@ -13,7 +14,7 @@ def read_data(path):
     return data
 
 def save_model(model):
-    with open("new.pkl", "wb") as file:
+    with open("model.pkl", "wb") as file:
         pickle.dump(model, file)
 
 def train_base_model_with_csv(data):
@@ -63,7 +64,12 @@ def make_prediction(model, X_test):
 def extract_weights_and_biases(model):
     weights = model.coef_
     biases = model.intercept_
-    return weights, biases
+    flattened_weights = weights.flatten().tolist()
+    shape = list(weights.shape)
+
+    print(weights)
+    print(flattened_weights)
+    return flattened_weights, biases, shape
 
 def train_existing_model(model, data):
     scaler = StandardScaler()
@@ -96,12 +102,12 @@ def average_weights_and_biases(all_client_weights, all_client_biases):
 
     return average_weights, average_biases
 
-def train_base_model(average_weights, average_biases):
-
+def train_base_model(average_weights, average_biases, shape):
+    weights = np.array(average_weights).reshape(shape)
+    bias = np.array(average_biases)
     model = LogisticRegression(random_state=42, max_iter=1000)
-    model.coef_ = average_weights
-    model.intercept_ = average_biases
-
+    model.coef_ = weights
+    model.intercept_ = bias
     return model
 
 def load_model(file_path):

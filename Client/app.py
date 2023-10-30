@@ -7,40 +7,50 @@ import pandas as pd
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
-model = diabetes.load_model("model.pkl")
 readyToTrain = False
 newModel = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
 
-# Generate a unique ID for the client
-clientID = diabetes.generate_random_string()
-
 # Check with server side if model mathces up
 def scheduled_task():
-    global model, clientID
+    global model, weights, bias
     channel = grpc.insecure_channel("localhost:50051")
     stub = FD_pb2_grpc.ModelServiceStub(channel)
     trainingFile = diabetes.calculate_md5("model.pkl")
     response = stub.DiffModel(FD_pb2.HashValue(clientHash=trainingFile))
-
     if(response.HashResult):
-        # If hash result returns True meaning they are different, then local model can be pushed to the server for aggregation
-        weights, bias = diabetes.extract_weights_and_biases(model)
-        sent_weights = FD_pb2.sentWeights()
-        for w in weights:
-            sent_weights.weights.extend(w)
-        sent_weights.bias.extend(bias)
-        sent_weights.clientID = clientID
+        # Extract weights, bias, shape
+        weights, bias, shape = diabetes.extract_weights_and_biases(model)
+        sent_weights = FD_pb2.sentWeights(weights=weights,bias=bias,shape=shape)
         response = stub.sendWeight(sent_weights)
-        print(response.message)
-        print("The hash between client and server is " + str(response.HashResult))
-    # Your background task logic goes here
+
+        # Reconstruct the latest received model
+        model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+
+        # Update the local model
+        diabetes.save_model(model)
+        # Your background task logic goes here
     print("Scheduled task executed!")
 
-# Schedule the task to run every 10 minutes
+# Schedule the task to run every 1 minutes
 schedule.every(1).minutes.do(scheduled_task)
+
+# Function used during init to get the latest model from the server
+def getModel():
+    channel = grpc.insecure_channel("localhost:50051")
+    stub = FD_pb2_grpc.ModelServiceStub(channel)
+    result = FD_pb2.startValue(number=1)
+    response = stub.getModel(result)
+
+    # Reconstruct the weights into a model
+    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+    # Save the model locally
+    diabetes.save_model(model)
+    return model
+
+model = getModel()
 
 # Utility functions
 def convertStrsToFloats(dictionary):

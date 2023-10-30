@@ -4,7 +4,7 @@ import logging
 
 import grpc, hashlib, json
 import FD_pb2
-import FD_pb2_grpc
+import FD_pb2_grpc, diabetes
 
 def run():
     channel = grpc.insecure_channel("localhost:50051")
@@ -33,9 +33,10 @@ def run():
     for w in weight:
         sent_weights.weights.extend(w)
     sent_weights.bias.extend(bias)
-    sent_weights.clientID = "1230951701"
     response = stub.sendWeight(sent_weights)
-    print(response.message)
+
+    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+
     # with open("test.tflite", "rb") as f:
     #     chunk_size = 1024 * 1024  # 1MB
     #     response = stub.UploadFile(generate_chunks(f, chunk_size))

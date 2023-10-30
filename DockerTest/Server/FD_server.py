@@ -1,9 +1,10 @@
 from concurrent import futures
-import grpc, FD_pb2, FD_pb2_grpc, datetime, hashlib, diabetes
-
+import grpc, FD_pb2, FD_pb2_grpc, datetime, hashlib, diabetes, threading,time
+import numpy as np
 # Global variable to hold all the aggregated data
-weights = {}
-bias = {}
+weights = []
+bias = []
+model = diabetes.load_model("model.pkl")
 
 class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
 
@@ -16,25 +17,37 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         return FD_pb2.UploadFileResponse(message="File received")
     
     def DiffModel(self, request_iterator, context):
-        localHash = calculate_md5("Dockerfile")
+        localHash = calculate_md5("model.pkl")
         if (request_iterator.clientHash != localHash):
-            HashResult = True
+            HashDiff = True
         else:
-            HashResult = False
-        return FD_pb2.HashCompared(HashResult=HashResult)
+            HashDiff = False
+        return FD_pb2.HashCompared(HashResult=HashDiff)
     
     def sendWeight(self, request_iterator, context):
-        global weights, bias
-        # diabetes.average_weights_and_biases()
-        print(request_iterator.clientID)
-        if(request_iterator.clientID not in weights):
-            weights[request_iterator.clientID] = request_iterator.weights
-            bias[request_iterator.clientID] = request_iterator.bias
-        message = "Weights received"
+        global weights, bias,model
+        shape = 0
+        proper_weight = np.array(request_iterator.weights).reshape(shape)
+        weights.append(proper_weight)
+        bias.append(request_iterator.bias)
 
-        # If there are x number of received items, start to aggregate
+        if(len(weights) > 3):
+            new_weights, new_bias = diabetes.average_weights_and_biases(weights,bias)
+            weights = []
+            bias = []
+        else:
+            new_weights, new_bias, shape = diabetes.extract_weights_and_biases(model)
+            print(new_weights)
+            print(shape)
 
-        return FD_pb2.weightResponse(message=message)
+
+        return FD_pb2.weightResponse(weights=new_weights,bias=new_bias,shape=shape)
+    
+    def getModel(self, request_iterator, context):
+        global model
+        weight, bias, shape = diabetes.extract_weights_and_biases(model)
+
+        return FD_pb2.initialModel(weights=weight,bias=bias,shape=shape)
 
 def createName():
     received_file = "received_file"

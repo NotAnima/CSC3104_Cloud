@@ -29,6 +29,11 @@ class ModelServiceStub(object):
                 request_serializer=FD__pb2.sentWeights.SerializeToString,
                 response_deserializer=FD__pb2.weightResponse.FromString,
                 )
+        self.getModel = channel.unary_unary(
+                '/ModelService/getModel',
+                request_serializer=FD__pb2.startValue.SerializeToString,
+                response_deserializer=FD__pb2.initialModel.FromString,
+                )
 
 
 class ModelServiceServicer(object):
@@ -52,6 +57,12 @@ class ModelServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def getModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ModelServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -69,6 +80,11 @@ def add_ModelServiceServicer_to_server(servicer, server):
                     servicer.sendWeight,
                     request_deserializer=FD__pb2.sentWeights.FromString,
                     response_serializer=FD__pb2.weightResponse.SerializeToString,
+            ),
+            'getModel': grpc.unary_unary_rpc_method_handler(
+                    servicer.getModel,
+                    request_deserializer=FD__pb2.startValue.FromString,
+                    response_serializer=FD__pb2.initialModel.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -128,5 +144,22 @@ class ModelService(object):
         return grpc.experimental.unary_unary(request, target, '/ModelService/sendWeight',
             FD__pb2.sentWeights.SerializeToString,
             FD__pb2.weightResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def getModel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/ModelService/getModel',
+            FD__pb2.startValue.SerializeToString,
+            FD__pb2.initialModel.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
