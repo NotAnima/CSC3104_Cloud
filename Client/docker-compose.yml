@@ -2,6 +2,9 @@ version: '3'
 
 services:
   flask-app:
-    image: dereknan/cloud_client
+    image: dereknan/cloud_client:0.1
+    build:
+      context: .
+    container_name: pythonFlaskApp
     ports:
       - "80:5000"

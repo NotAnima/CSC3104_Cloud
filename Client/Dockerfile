@@ -5,13 +5,12 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Copy the local directory contents into the container at /app
-COPY . .
+COPY . /app
 
 EXPOSE 5000
 
 # Activate the virtual environment
-RUN . cloud/bin/activate && \
-  pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Specify the command to run your Python script
-CMD ["python", "app.py"]
+CMD [ "python", "-m" , "flask", "run", "--host=0.0.0.0"]
