@@ -33,12 +33,11 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
 
         if(len(weights) > 3):
             new_weights, new_bias = diabetes.average_weights_and_biases(weights,bias)
+            model = diabetes.train_average_model(new_weights, new_bias)
             weights = []
             bias = []
         else:
             new_weights, new_bias, shape = diabetes.extract_weights_and_biases(model)
-            print(new_weights)
-            print(shape)
 
 
         return FD_pb2.weightResponse(weights=new_weights,bias=new_bias,shape=shape)

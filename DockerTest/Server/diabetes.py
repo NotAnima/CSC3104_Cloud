@@ -67,8 +67,6 @@ def extract_weights_and_biases(model):
     flattened_weights = weights.flatten().tolist()
     shape = list(weights.shape)
 
-    print(weights)
-    print(flattened_weights)
     return flattened_weights, biases, shape
 
 def train_existing_model(model, data):
@@ -101,6 +99,12 @@ def average_weights_and_biases(all_client_weights, all_client_biases):
     average_biases = np.mean(stacked_biases, axis=0)
 
     return average_weights, average_biases
+
+def train_average_model(average_weights, average_biases):
+    model = LogisticRegression(random_state=42, max_iter=1000)
+    model.coef_ = average_weights
+    model.intercept_ = average_biases
+    return model
 
 def train_base_model(average_weights, average_biases, shape):
     weights = np.array(average_weights).reshape(shape)

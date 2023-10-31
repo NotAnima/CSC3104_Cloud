@@ -13,29 +13,30 @@ personList = [] # stores every form entry [personDetails class]locally so long a
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
 
-# Check with server side if model mathces up
+# Check with server side if model matches up
 def scheduled_task():
     global model, weights, bias
     channel = grpc.insecure_channel("localhost:50051")
     stub = FD_pb2_grpc.ModelServiceStub(channel)
-    trainingFile = diabetes.calculate_md5("model.pkl")
-    response = stub.DiffModel(FD_pb2.HashValue(clientHash=trainingFile))
-    if(response.HashResult):
-        # Extract weights, bias, shape
-        weights, bias, shape = diabetes.extract_weights_and_biases(model)
-        sent_weights = FD_pb2.sentWeights(weights=weights,bias=bias,shape=shape)
-        response = stub.sendWeight(sent_weights)
+    # Load training model
+    trainModel = diabetes.load_model("trainingModel.pkl")
 
-        # Reconstruct the latest received model
-        model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+    # Extract weights, bias, shape
+    weights, bias, shape = diabetes.extract_weights_and_biases(trainModel)
+    sent_weights = FD_pb2.sentWeights(weights=weights,bias=bias,shape=shape)
+    response = stub.sendWeight(sent_weights)
 
-        # Update the local model
-        diabetes.save_model(model)
-        # Your background task logic goes here
+    # Reconstruct the latest received model
+    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+
+    # Update the local model
+    diabetes.save_model(model, "referenceModel.pkl")
+    # Your background task logic goes here
     print("Scheduled task executed!")
 
-# Schedule the task to run every 1 minutes
-schedule.every(1).minutes.do(scheduled_task)
+# Schedule the task to run every 30 minutes
+schedule.every(30).minutes.at(":00").do(scheduled_task)
+schedule.every(30).minutes.at(":30").do(scheduled_task)
 
 # Function used during init to get the latest model from the server
 def getModel():
@@ -47,7 +48,7 @@ def getModel():
     # Reconstruct the weights into a model
     model = diabetes.train_base_model(response.weights, response.bias, response.shape)
     # Save the model locally
-    diabetes.save_model(model)
+    diabetes.save_model(model, "referenceModel.pkl")
     return model
 
 model = getModel()
@@ -114,7 +115,6 @@ def resultPage():
 def trainModel():
     # Check if at least 3 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
     global answeredList, readyToTrain, newModel, model
-    print(answeredList)
     # Diagnosis results
     result = set()
     if (not readyToTrain):
@@ -135,9 +135,7 @@ def trainModel():
 
         # # Send data for training
         model = diabetes.train_existing_model(model, trainingData)
-        diabetes.save_model(model)
-        # Reload model
-        model = diabetes.load_model("model.pkl")
+        diabetes.save_model(model, "trainingModel.pkl")
 
         # Clean up
         readyToTrain = False

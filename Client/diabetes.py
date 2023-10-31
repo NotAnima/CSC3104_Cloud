@@ -13,8 +13,8 @@ def read_data(path):
 
     return data
 
-def save_model(model):
-    with open("model.pkl", "wb") as file:
+def save_model(model, name):
+    with open(name, "wb") as file:
         pickle.dump(model, file)
 
 def train_base_model_with_csv(data):
@@ -108,6 +108,12 @@ def train_base_model(average_weights, average_biases, shape):
     model = LogisticRegression(random_state=42, max_iter=1000)
     model.coef_ = weights
     model.intercept_ = bias
+    return model
+
+def train_average_model(average_weights, average_biases):
+    model = LogisticRegression(random_state=42, max_iter=1000)
+    model.coef_ = average_weights
+    model.intercept_ = average_biases
     return model
 
 def load_model(file_path):
