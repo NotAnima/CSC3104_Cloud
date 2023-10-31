@@ -8,8 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Activate the virtual environment
-RUN . cloud/bin/activate && \
-  pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Specify the command to run your Python script
 CMD ["python", "FD_server.py"]
