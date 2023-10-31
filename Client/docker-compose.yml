@@ -2,9 +2,6 @@ version: '3'
 
 services:
   flask-app:
-    image: notanima/csc_3104:pythonflask
-    build:
-      context: .
-    container_name: pythonFlaskApp
+    image: dereknan/cloud_client
     ports:
       - "80:5000"

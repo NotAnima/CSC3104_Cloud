@@ -1,11 +1,17 @@
+# Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
+# Set the working directory in the container
 WORKDIR /app
 
-COPY ./ ./
-
-RUN pip3 install -r requirements.txt
+# Copy the local directory contents into the container at /app
+COPY . .
 
 EXPOSE 5000
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+# Activate the virtual environment
+RUN . cloud/bin/activate && \
+  pip install -r requirements.txt
+
+# Specify the command to run your Python script
+CMD ["python", "app.py"]

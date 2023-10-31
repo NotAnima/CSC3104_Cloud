@@ -16,7 +16,7 @@ answeredList = [] # Contains the doctors results if they have diabetes or not, t
 # Check with server side if model matches up
 def scheduled_task():
     global model, weights, bias
-    channel = grpc.insecure_channel("localhost:50051")
+    channel = grpc.insecure_channel("dereknan.click:50051")
     stub = FD_pb2_grpc.ModelServiceStub(channel)
     # Load training model
     trainModel = diabetes.load_model("trainingModel.pkl")
@@ -40,7 +40,7 @@ schedule.every(30).minutes.at(":30").do(scheduled_task)
 
 # Function used during init to get the latest model from the server
 def getModel():
-    channel = grpc.insecure_channel("localhost:50051")
+    channel = grpc.insecure_channel("dereknan.click:50051")
     stub = FD_pb2_grpc.ModelServiceStub(channel)
     result = FD_pb2.startValue(number=1)
     response = stub.getModel(result)
