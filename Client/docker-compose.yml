@@ -2,7 +2,7 @@ version: '3'
 
 services:
   flask-app:
-    image: dereknan/cloud_client:0.1
+    image: dereknan/cloud_client
     build:
       context: .
     container_name: pythonFlaskApp
