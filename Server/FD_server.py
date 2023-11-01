@@ -9,10 +9,15 @@ model = diabetes.load_model("model.pkl")
 class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
     def sendWeight(self, request_iterator, context):
         global weights, bias,model
-        shape = 0
-        proper_weight = np.array(request_iterator.weights).reshape(shape)
+        proper_weight = np.array(request_iterator.weights).reshape(request_iterator.shape)
         weights.append(proper_weight)
         bias.append(request_iterator.bias)
+
+        print("Received weights")
+        print(proper_weight)
+        print("\n")
+        print("Received Bias")
+        print(request_iterator.bias)
 
         # If received more than 3 training data, aggregate it
         if(len(weights) > 3):
