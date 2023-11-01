@@ -25,7 +25,7 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         # If received more than 3 training data, aggregate it
         if(len(weights) > 3):
             print("Aggregating new model..." + time)
-            hashResult = diabetes.calculate_md5(model)
+            hashResult = diabetes.calculate_md5("model.pkl")
             print("Hash before training: " + str(hashResult))
             new_weights, new_bias = diabetes.average_weights_and_biases(weights,bias)
             model = diabetes.train_average_model(new_weights, new_bias)
