@@ -24,9 +24,13 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
 
         # If received more than 3 training data, aggregate it
         if(len(weights) > 3):
-            print("Aggregating new model...")
+            print("Aggregating new model..." + time)
+            hashResult = diabetes.calculate_md5(model)
+            print("Hash before training: " + str(hashResult))
             new_weights, new_bias = diabetes.average_weights_and_biases(weights,bias)
             model = diabetes.train_average_model(new_weights, new_bias)
+            hashResult = diabetes.calculate_md5(model)
+            print("Hash after training: " + str(hashResult))
             weights = []
             bias = []
 
@@ -50,13 +54,6 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         weight, bias, shape = diabetes.extract_weights_and_biases(model)
 
         return FD_pb2.initialModel(weights=weight,bias=bias,shape=shape)
-
-def calculate_md5(file_path):
-    md5_hash = hashlib.md5()
-    with open(file_path, "rb") as file:
-        for chunk in iter(lambda: file.read(4096), b""):
-            md5_hash.update(chunk)
-    return md5_hash.hexdigest()
 
 def getTime():
     current_time = datetime.datetime.now()
