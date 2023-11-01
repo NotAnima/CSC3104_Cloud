@@ -18,9 +18,6 @@ def scheduled_task():
 
     # Extract weights, bias, shape
     weights, bias, shape = diabetes.extract_weights_and_biases(trainModel)
-    print(type(weights))
-    print(type(bias))
-    print(type(shape))
     sent_weights = FD_pb2.sentWeights(weights=weights,bias=bias,shape=shape)
     response = stub.sendWeight(sent_weights)
 
