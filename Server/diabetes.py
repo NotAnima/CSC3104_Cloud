@@ -13,8 +13,8 @@ def read_data(path):
 
     return data
 
-def save_model(model):
-    with open("model.pkl", "wb") as file:
+def save_model(model, name):
+    with open(name, "wb") as file:
         pickle.dump(model, file)
 
 def train_base_model_with_csv(data):
