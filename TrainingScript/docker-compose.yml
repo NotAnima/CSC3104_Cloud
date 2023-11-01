@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  model-training-app:
+    # If you're using the raspberrypi use this
+    # image: dereknan/cloud-client-arm64:training
+
+    # If you're using your normal computer use this
+    image: dereknan/cloud-client-x86:training
+    build:
+      context: .
+    container_name: FDModelTraining
