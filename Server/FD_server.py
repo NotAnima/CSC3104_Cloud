@@ -1,5 +1,5 @@
 from concurrent import futures
-import grpc, FD_pb2, FD_pb2_grpc, datetime, hashlib, diabetes, threading,time
+import grpc, FD_pb2, FD_pb2_grpc, datetime, hashlib, diabetes
 import numpy as np
 # Global variable to hold all the aggregated data
 weights = []
@@ -13,7 +13,10 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         weights.append(proper_weight)
         bias.append(request_iterator.bias)
 
-        print("Received weights")
+
+        # Verbose for logging
+        time = getTime()
+        print("Received weights: " + time)
         print(proper_weight)
         print("\n")
         print("Received Bias")
@@ -26,16 +29,23 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
             model = diabetes.train_average_model(new_weights, new_bias)
             weights = []
             bias = []
+
+            # Show new weights and bias
+            print("New weights: " + time)
+            print(new_weights)
+            print("\n")
+            print("New Bias")
+            print(new_bias)
         else:
             # If not just return the existing model
-            print("Not enough data, returning existing model...")
+            print("Not enough data, returning existing model: " + time)
             new_weights, new_bias, shape = diabetes.extract_weights_and_biases(model)
-
 
         return FD_pb2.weightResponse(weights=new_weights,bias=new_bias,shape=shape)
     
     def getModel(self, request_iterator, context):
-        print("Sending model...")
+        time = getTime()
+        print("Sending model: " + time)
         global model
         weight, bias, shape = diabetes.extract_weights_and_biases(model)
 
@@ -47,6 +57,11 @@ def calculate_md5(file_path):
         for chunk in iter(lambda: file.read(4096), b""):
             md5_hash.update(chunk)
     return md5_hash.hexdigest()
+
+def getTime():
+    current_time = datetime.datetime.now()
+    formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+    return formatted_time
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
