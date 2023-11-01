@@ -29,7 +29,12 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
             print("Hash before training: " + str(hashResult))
             new_weights, new_bias = diabetes.average_weights_and_biases(weights,bias)
             model = diabetes.train_average_model(new_weights, new_bias)
-            hashResult = diabetes.calculate_md5(model)
+
+            # Reload model
+            diabetes.save_model(model, "model.pkl")
+            model = diabetes.load_model("model.pkl")
+
+            hashResult = diabetes.calculate_md5("model.pkl")
             print("Hash after training: " + str(hashResult))
             weights = []
             bias = []

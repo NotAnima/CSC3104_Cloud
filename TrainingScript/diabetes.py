@@ -67,8 +67,8 @@ def extract_weights_and_biases(model):
     flattened_weights = weights.flatten().tolist()
     shape = list(weights.shape)
 
-    print(weights)
-    print(flattened_weights)
+    # print(type(weights))
+    # print(type(flattened_weights))
     return flattened_weights, biases, shape
 
 def train_existing_model(model, data):
