@@ -12,14 +12,19 @@ newModel = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
+channel = grpc.insecure_channel("dereknan.click:50051")
+stub = FD_pb2_grpc.ModelServiceStub(channel)
 
 # Check with server side if model matches up
 def scheduled_task():
     global model, weights, bias
-    channel = grpc.insecure_channel("dereknan.click:50051")
-    stub = FD_pb2_grpc.ModelServiceStub(channel)
-    # Load training model
-    trainModel = diabetes.load_model("trainingModel.pkl")
+
+    try:
+        # Load training model
+        trainModel = diabetes.load_model("trainingModel.pkl")
+    except:
+        # If no training model ready yet, use reference model
+        trainModel = diabetes.load_model("referenceModel.pkl")
 
     # Extract weights, bias, shape
     weights, bias, shape = diabetes.extract_weights_and_biases(trainModel)
@@ -40,8 +45,6 @@ schedule.every(30).minutes.at(":30").do(scheduled_task)
 
 # Function used during init to get the latest model from the server
 def getModel():
-    channel = grpc.insecure_channel("dereknan.click:50051")
-    stub = FD_pb2_grpc.ModelServiceStub(channel)
     result = FD_pb2.startValue(number=1)
     response = stub.getModel(result)
 
