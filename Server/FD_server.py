@@ -26,6 +26,8 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         if(len(weights) > 3):
             print("Aggregating new model..." + time)
             hashResult = diabetes.calculate_md5("model.pkl")
+
+            # Train the model
             print("Hash before training: " + str(hashResult))
             new_weights, new_bias = diabetes.average_weights_and_biases(weights,bias)
             model = diabetes.train_average_model(new_weights, new_bias)
@@ -48,7 +50,9 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         else:
             # If not just return the existing model
             print("Not enough data, returning existing model: " + time)
-            new_weights, new_bias, shape = diabetes.extract_weights_and_biases(model)
+            
+        # Extract out the weights for usage
+        new_weights, new_bias, shape = diabetes.extract_weights_and_biases(model)
 
         return FD_pb2.weightResponse(weights=new_weights,bias=new_bias,shape=shape)
     
