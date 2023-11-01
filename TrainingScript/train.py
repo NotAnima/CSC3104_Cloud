@@ -26,16 +26,6 @@ def scheduled_task():
     diabetes.save_model(model, "referenceModel.pkl")
     # Your background task logic goes here
     print("Scheduled task executed!")
-
-def run():
-    # List used for store all the simulated patients
-    trainingPatient = []
-    for i in range(0,5):
-        person = createPerson()
-        trainingPatient.append(person)
-    trainingData = pd.DataFrame(trainingPatient)
-    model = diabetes.train_existing_model(model, trainingData)
-    diabetes.save_model(model, "trainingModel.pkl")
     
 
 def getModel():
@@ -51,6 +41,17 @@ def getModel():
 
 # Initialise first model from server
 model = getModel()
+
+def run():
+    global model
+    # List used for store all the simulated patients
+    trainingPatient = []
+    for i in range(0,5):
+        person = createPerson()
+        trainingPatient.append(person)
+    trainingData = pd.DataFrame(trainingPatient)
+    model = diabetes.train_existing_model(model, trainingData)
+    diabetes.save_model(model, "trainingModel.pkl")
 
 def createPerson():
     practicePatient = {}
