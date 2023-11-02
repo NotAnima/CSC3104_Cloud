@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import logging, schedule, time, datetime, random, grpc, FD_pb2, FD_pb2_grpc, diabetes
 import pandas as pd
-channel = grpc.insecure_channel("dereknan.click:50051")
+channel = grpc.insecure_channel("localhost:50051")
 stub = FD_pb2_grpc.ModelServiceStub(channel)
 
 def scheduled_task():
@@ -69,8 +69,6 @@ def createPerson(personNum):
     practicePatient["Age"] = float(random.randint(1, 13))
     # To ensure there's at least 1 of each type for the model to train
     practicePatient["Diabetes"] = float(personNum % 2)
-
-
 
     for attribute in attributes:
         practicePatient[attribute] = float(random.randint(0,1))
