@@ -4,9 +4,51 @@ from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
+from os import environ
+from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = "Banana73"
+db = SQLAlchemy()
+
+def create_app():
+
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = environ('DATABASE_URL')
+    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = "Banana73"
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+
+    return app
+
+app = create_app()
+
+# Define a model for the `Patients` table
+class Patients(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(500), nullable=False)
+    # HighBP = db.Column(db.Float)
+    # HighChol = db.Column(db.Float)
+    # CholCheck =
+    # BMI =
+    # Smoker =
+    # Stroke =
+    # HeartDiseaseorAttack =
+    # PhysActivity =
+    # Fruits =
+    # Veggies =
+    # HvyAlcoholConsump =
+    # PhysHlth =
+    # DiffWalk =
+    # Sex =
+    # Age =
+    
+
+    labelled = db.Column(db.Boolean, default=False)
+
+
+
 readyToTrain = False
 newModel = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
@@ -102,6 +144,8 @@ class personDetails():
 
 @app.route("/")
 def homePage():
+    dataRetrieved = Patient.query.all()
+    flash(f'{dataRetrieved}')
     return render_template("index.html")
 
 @app.route("/results")
@@ -209,6 +253,11 @@ def prediction():
 
         # All the values in the keys being inserted into the dictionary are currently Strings, calling this function to convert them into float values, if not needed, then remove
         convertStrsToFloats(patientDetails)
+
+        content = form.request['HighBP']
+        newPatient = Patient(content=content)
+        db.session.add(Patient)
+        db.session.commit()
 
         # Instantiate the new person
         newPerson = personDetails(patientDetails)
