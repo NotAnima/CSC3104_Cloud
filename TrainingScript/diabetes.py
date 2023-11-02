@@ -106,6 +106,7 @@ def train_base_model(average_weights, average_biases, shape):
     weights = np.array(average_weights).reshape(shape)
     bias = np.array(average_biases)
     model = LogisticRegression()
+    model.classes_ = np.array([0,1])
     model.coef_ = weights
     model.intercept_ = bias
     return model
