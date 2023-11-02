@@ -7,6 +7,10 @@ services:
 
     # If you're using your normal computer use this
     # image: dereknan/cloud-client-x86:training
+    image: dereknan/cloud-client-x86:training
+
+    # build and context can just be commented out altogether if you just want to pull from Docker Hub
     build:
-      context: .
+      context: ./Dockerfile.x86
+      #context: ./Dockerfile.arm64 # If you're using arm64 architecture, use this context instead
     container_name: FDModelTraining
