@@ -4,7 +4,7 @@ from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
-from os import environ
+import os
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -12,8 +12,8 @@ db = SQLAlchemy()
 def create_app():
 
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = environ('DATABASE_URL')
-    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = "Banana73"
     db.init_app(app)
 
@@ -144,7 +144,7 @@ class personDetails():
 
 @app.route("/")
 def homePage():
-    dataRetrieved = Patient.query.all()
+    dataRetrieved = Patients.query.all()
     flash(f'{dataRetrieved}')
     return render_template("index.html")
 
@@ -255,8 +255,8 @@ def prediction():
         convertStrsToFloats(patientDetails)
 
         content = form.request['HighBP']
-        newPatient = Patient(content=content)
-        db.session.add(Patient)
+        newPatient = Patients(content=content)
+        db.session.add(newPatient)
         db.session.commit()
 
         # Instantiate the new person
@@ -296,4 +296,4 @@ if __name__ == "__main__":
     task_thread.start()
 
     # Run Flask on the main thread
-    app.run()
+    app.run(debug=True)
