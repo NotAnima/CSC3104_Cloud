@@ -126,6 +126,12 @@ class personDetails():
 
 @app.route("/")
 def homePage():
+    #try:
+    #    all_patients = Patient.query.all()
+    #    return render_template("patients.html", patients=all_patients)
+    #except Exception as e:
+    #    return "Error: " + str(e)
+
     return render_template("index.html")
 
 @app.route("/results")
