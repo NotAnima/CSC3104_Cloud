@@ -1,29 +1,28 @@
 {% extends "base.html" %}
 {% block title %}The Doctors Backlog{% endblock %}
 {% block content %}
-{%  if personList|length >= 3 %}
+{%  if personList|length >= 1 %}
   <form action="/doctors" method = "post">
       <div class="container-fluid">
         {% for person in personList %}
         <b><label for="Patient {{ loop.index+1 }}">Patient: {{ loop.index }}</label></b>
         <br><br>
         <div>
-          {% set person_info = person.getDetails() %}
-          Blood Pressure: <b>{{ person_info.HighBP}}</b><br>
-          Cholesterol Levels: <b>{{ person_info.HighChol }}</b><br>
-          Recent (5years) Cholesterol Levels: <b>{{ person_info.CholCheck }}</b><br>
-          BMI: <b>{{ person_info.BMI }}</b><br>
-          Smoking Status: <b>{{ person_info.Smoker }}</b><br>
-          Stroke Status: <b>{{ person_info.Stroke }}</b><br>
-          Heart Disease or Attack: <b>{{ person_info.HeartDiseaseorAttack }}</b><br>
-          Physical Activity: <b>{{ person_info.PhysActivity }}</b><br>
-          Fruits consumption: <b>{{ person_info.Fruits }}</b><br>
-          Veggies: <b>{{ person_info.Veggies }}</b><br>
-          Alcohol consumption: <b>{{ person_info.HvyAlcoholConsump }}</b><br>
-          Physical Health: <b>{{ person_info.PhysHlth }}</b><br>
-          Difficulties Walking: <b>{{ person_info.DiffWalk }}</b><br>
-          Gender: <b>{{ person_info.Sex }}</b><br>
-          Age Group: <b>{{ person_info.Age }}</b><br><br>
+          Blood Pressure: <b>{{ person.high_bp}}</b><br>
+          Cholesterol Levels: <b>{{ person.high_chol }}</b><br>
+          Recent (5years) Cholesterol Levels: <b>{{ person.chol_check }}</b><br>
+          BMI: <b>{{ person.bmi }}</b><br>
+          Smoking Status: <b>{{ person.smoker }}</b><br>
+          Stroke Status: <b>{{ person.stroke }}</b><br>
+          Heart Disease or Attack: <b>{{ person.heart_disease_or_attack }}</b><br>
+          Physical Activity: <b>{{ person.phys_activity }}</b><br>
+          Fruits consumption: <b>{{ person.fruits }}</b><br>
+          Veggies: <b>{{ person.veggies }}</b><br>
+          Alcohol consumption: <b>{{ person.hvy_alcohol_consump }}</b><br>
+          Physical Health: <b>{{ person.phys_hlth }}</b><br>
+          Difficulties Walking: <b>{{ person.diff_walk }}</b><br>
+          Gender: <b>{{ person.sex }}</b><br>
+          Age Group: <b>{{ person.age }}</b><br><br>
         </div>
 
         <input type="radio" name= "{{ loop.index }}" value="0">

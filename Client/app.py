@@ -30,6 +30,26 @@ class Patient(db.Model):
     diff_walk = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
     sex = db.Column(db.Float, nullable=False)  # Assuming 0 for Female, 1 for Male
     age = db.Column(db.Float, nullable=False)  # Assuming an integer representation for age groups
+    label = db.Column(db.Float, nullable=True)
+    labelled = db.Column(db.Boolean, nullable=False, default=False)
+    sent = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __init__(self, high_bp, high_chol, chol_check, bmi, smoker, stroke, heart_disease_or_attack, phys_activity, fruits, veggies, hvy_alcohol_consump, phys_hlth, diff_walk, sex, age):
+        self.high_bp = high_bp
+        self.high_chol = high_chol
+        self.chol_check = chol_check
+        self.bmi = bmi
+        self.smoker = smoker
+        self.stroke = stroke
+        self.heart_disease_or_attack = heart_disease_or_attack
+        self.phys_activity = phys_activity
+        self.fruits = fruits
+        self.veggies = veggies
+        self.hvy_alcohol_consump = hvy_alcohol_consump
+        self.phys_hlth = phys_hlth
+        self.diff_walk = diff_walk
+        self.sex = sex
+        self.age = age
 
 readyToTrain = False
 newModel = False
@@ -109,9 +129,9 @@ class userForm(FlaskForm):
 
 
 # Usage; personList = popBasedOnIndexes(personList, doctorsRepliesOfPatients)
-def popBasedOnIndexes(personList, indexesToPop):
-    newList = [personList[i] for i in range(len(personList)) if i not in indexesToPop]
-    return newList
+#def popBasedOnIndexes(personList, indexesToPop):
+#    newList = [personList[i] for i in range(len(personList)) if i not in indexesToPop]
+#    return newList
 
 
 class personDetails():
@@ -138,8 +158,8 @@ def homePage():
 def resultPage():
     global personList
     # TEMP TO BE REMOVED
-    practicePatient = {'HighBP': 1.0, 'HighChol': 1.0, 'CholCheck': 1.0, 'BMI': 21.0, 'Smoker': 1.0, 'Stroke': 1.0, 'HeartDiseaseorAttack': 1.0, 'PhysActivity': 1.0, 'Fruits': 1.0, 'Veggies': 1.0, 'HvyAlcoholConsump': 1.0, 'PhysHlth': 1.0, 'DiffWalk': 1.0, 'Sex': 1.0, 'Age': 5.0}
-    personList.append(personDetails(practicePatient))
+    # practicePatient = {'HighBP': 1.0, 'HighChol': 1.0, 'CholCheck': 1.0, 'BMI': 21.0, 'Smoker': 1.0, 'Stroke': 1.0, 'HeartDiseaseorAttack': 1.0, 'PhysActivity': 1.0, 'Fruits': 1.0, 'Veggies': 1.0, 'HvyAlcoholConsump': 1.0, 'PhysHlth': 1.0, 'DiffWalk': 1.0, 'Sex': 1.0, 'Age': 5.0}
+    # personList.append(personDetails(practicePatient))
     # REMOVE EVERYTHING ABOVE
     prediction_result = request.args.get("prediction_result")
     return render_template("results.html",  prediction_result=prediction_result)
@@ -148,14 +168,16 @@ def resultPage():
 def trainModel():
     # Check if at least 3 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
     global answeredList, readyToTrain, newModel, model
+    foundPatients = Patient.query.filter_by(labelled=True, sent=False).all() # returns Patient objects
     # Diagnosis results
     result = set()
     if (not readyToTrain):
-        for data_dict in answeredList:
+        #for data_dict in answeredList:
+         for patient in foundPatients:
             if len(result) < 2:
                 print("System not ready yet for training")
-                if "Diabetes" in data_dict:
-                    result.add(data_dict["Diabetes"])
+                if patient.label != None: # if this has a
+                    result.add(patient.label) # add the patient.Label field
             else:
                 print("System ready to be trained")
                 readyToTrain = True
@@ -192,7 +214,7 @@ def sendModel():
 @app.route('/doctors', methods=['GET', 'POST'])
 def doctors():
     global personList, model, answeredList
-    
+    foundPatients = Patient.query.filter_by(labelled=False).all()
     # global piledCacheCategories
     if request.method == 'POST':
         # Create an empty list to store the selected indexes
@@ -203,18 +225,23 @@ def doctors():
         for indexKey, value in list(dataList.items())[:-1]: 
             if dataList[indexKey] != None:
                 # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
-                selected_indexes.append((int(indexKey)-1)) 
+                # selected_indexes.append((int(indexKey)-1))
+                
+                # update those based off the form request value and mark this patient as labelled in the db
+                foundPatients[(int(indexKey)-1)].label = value
+                foundPatients[(int(indexKey)-1)].labelled = True
 
+        db.session.commit()
         # Create a new list that only has the patient data and the doctors result if they have diabetes or not
         for idx in selected_indexes:
-            personList[idx].information["Diabetes"] = request.form.get(str(idx+1))
-            answeredList.append(personList[idx].getDetails())
+            # personList[idx].information["Diabetes"] = request.form.get(str(idx+1))
+            answeredList.append(foundPatients[idx])
         
         # to retrieve the 0,1,2 from each radio button, just add get the value from each key that iterates through
         # remove those indexes that the doctor actually categorises
-        personList = popBasedOnIndexes(personList, selected_indexes)
-
-    return render_template('doctors.html', personList=personList)
+        #personList = popBasedOnIndexes(personList, selected_indexes)
+    foundPatients = Patient.query.filter_by(labelled=False).all()
+    return render_template('doctors.html', personList=foundPatients)
 
 @app.route("/questions", methods=["POST", "GET"])
 def prediction():
@@ -239,7 +266,12 @@ def prediction():
 
         # All the values in the keys being inserted into the dictionary are currently Strings, calling this function to convert them into float values, if not needed, then remove
         convertStrsToFloats(patientDetails)
-
+        
+        newPatient = Patient(patientDetails['HighBP'], patientDetails['HighChol'], patientDetails['CholCheck'], patientDetails['BMI'], patientDetails['Smoker'], patientDetails['Stroke'], patientDetails['HeartDiseaseorAttack'], patientDetails['PhysActivity'], patientDetails['Fruits'], patientDetails['Veggies'], patientDetails['HvyAlcoholConsump'], patientDetails['PhysHlth'], patientDetails['DiffWalk'], patientDetails['Sex'], patientDetails['Age'])
+        
+        # Add this new patient into the database
+        db.session.add(newPatient)
+        db.session.commit()
         # Instantiate the new person
         newPerson = personDetails(patientDetails)
         # Use the more efficient way later on pls
@@ -252,13 +284,13 @@ def prediction():
         prediction_result = diabetes.make_prediction(model,scaled_features)
 
         # Add him/her into the local list of personLists for the doctors to use, for every person that their data is cleared up, they are cleared off the list
-        personList.append(newPerson)
+        #personList.append(newPerson)
 
-        print("New patient added!\n")
-        print(f"Number of patients currently in list is: {len(personList)}")
+        # print("New patient added!\n")
+        # print(f"Number of patients currently in list is: {len(personList)}")
 
         return redirect(url_for("resultPage", prediction_result=prediction_result))
-    
+        # return redirect(url_for('homePage'))
     # else condition for get request
     return render_template('questions.html', form=form)
 

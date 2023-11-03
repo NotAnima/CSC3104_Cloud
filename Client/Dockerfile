@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 5000
 
 # Specify the command to run your Python script
-CMD [ "python", "-m" , "flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]

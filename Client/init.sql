@@ -14,5 +14,8 @@ CREATE TABLE patient (
     phys_hlth REAL NOT NULL,
     diff_walk REAL NOT NULL, -- 0 for No, 1 for Yes
     sex REAL NOT NULL, -- 0 for Female, 1 for Male
-    age REAL NOT NULL -- Age group, represented by numbers 1 through 13
+    age REAL NOT NULL, -- Age group, represented by numbers 1 through 13
+    label REAL NULL, -- doctors answer is here
+    labelled BOOL NOT NULL, -- Whether or not it should be displayed on doctors hub
+    sent BOOL NOT NULL -- indicates whether this row has been sent to the server already or not
 );
