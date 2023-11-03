@@ -14,7 +14,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
 class Patient(db.Model):
-    id = db.Column(db.Float, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     high_bp = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
     high_chol = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
     chol_check = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
