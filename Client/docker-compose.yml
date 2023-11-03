@@ -1,10 +1,32 @@
-version: '3'
-
+version: '3.8'
 services:
-  flask-app:
-    image: dereknan/cloud_client
-    build:
+  web:
+    build: 
       context: .
-    container_name: pythonFlaskApp
     ports:
       - "80:5000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork: 
+
+volumes:
+  postgres_data: 
+

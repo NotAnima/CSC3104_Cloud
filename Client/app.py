@@ -4,9 +4,33 @@ from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
+from os import environ
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
+app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
+
+db = SQLAlchemy(app)
+
+class Patient(db.Model):
+    id = db.Column(db.Float, primary_key=True, autoincrement=True)
+    high_bp = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    high_chol = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    chol_check = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    bmi = db.Column(db.Float, nullable=False)
+    smoker = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    stroke = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    heart_disease_or_attack = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    phys_activity = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    fruits = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    veggies = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    hvy_alcohol_consump = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    phys_hlth = db.Column(db.Float, nullable=False)  # This could be days of poor physical health
+    diff_walk = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
+    sex = db.Column(db.Float, nullable=False)  # Assuming 0 for Female, 1 for Male
+    age = db.Column(db.Float, nullable=False)  # Assuming an integer representation for age groups
+
 readyToTrain = False
 newModel = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
