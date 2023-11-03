@@ -1,28 +1,31 @@
-version: '3'
-
+version: '3.8'
 services:
-  flask-app:
-    image: notanima/csc_3104:pythonflask
-    build:
+  web:
+    build: 
       context: .
-    container_name: pythonFlaskApp
     ports:
       - "80:5000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
     depends_on:
       - db
-    environment:
-      MYSQL_HOST: 'db'
+    networks:
+      - mynetwork
+
   db:
-    image: mysql:5.7
-    container_name: mysqldb
+    image: postgres:latest
     environment:
-      MYSQL_DATABASE: 'db'
-      MYSQL_ROOT_PASSWORD: 'password'
-      MYSQL_HOST: 'localhost'
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydatabase
     volumes:
-      - dbdata:/var/lib/mysql
-    ports:
-      - "3306:3306"
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork: 
+
 volumes:
-  dbdata:
+  postgres_data: 

@@ -2,42 +2,100 @@ from flask import Flask, redirect, url_for, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, RadioField, FloatField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
-import diabetes
+import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
-from os import environ
+import os
 from flask_sqlalchemy import SQLAlchemy
+from time import sleep
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = "Banana73"
-app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
+db = SQLAlchemy()
 
-db = SQLAlchemy(app)
+def create_app():
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # app.config['SECRET_KEY'] = "Banana73"
+    db.init_app(app)
 
-class Patient(db.Model):
-    id = db.Column(db.Float, primary_key=True, autoincrement=True)
-    high_bp = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    high_chol = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    chol_check = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    bmi = db.Column(db.Float, nullable=False)
-    smoker = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    stroke = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    heart_disease_or_attack = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    phys_activity = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    fruits = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    veggies = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    hvy_alcohol_consump = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    phys_hlth = db.Column(db.Float, nullable=False)  # This could be days of poor physical health
-    diff_walk = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
-    sex = db.Column(db.Float, nullable=False)  # Assuming 0 for Female, 1 for Male
-    age = db.Column(db.Float, nullable=False)  # Assuming an integer representation for age groups
+    sleep(10)
+    with app.app_context():
+        db.create_all()
 
-model = diabetes.load_model("model.pkl")
-#db = MySQL(app)
+    return app
 
+app = create_app()
 
+# Define a model for the `Patients` table
+class Patients(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(500), nullable=False)
+    # HighBP = db.Column(db.Float)
+    # HighChol = db.Column(db.Float)
+    # CholCheck =
+    # BMI =
+    # Smoker =
+    # Stroke =
+    # HeartDiseaseorAttack =
+    # PhysActivity =
+    # Fruits =
+    # Veggies =
+    # HvyAlcoholConsump =
+    # PhysHlth =
+    # DiffWalk =
+    # Sex =
+    # Age =
+    
+
+    labelled = db.Column(db.Boolean, default=False)
+
+readyToTrain = False
+newModel = False
 personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
 #piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
 answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
+channel = grpc.insecure_channel("dereknan.click:50051")
+stub = FD_pb2_grpc.ModelServiceStub(channel)
+
+# Check with server side if model matches up
+def scheduled_task():
+    global model, weights, bias
+
+    try:
+        # Load training model
+        trainModel = diabetes.load_model("trainingModel.pkl")
+    except:
+        # If no training model ready yet, use reference model
+        trainModel = diabetes.load_model("referenceModel.pkl")
+
+    # Extract weights, bias, shape
+    weights, bias, shape = diabetes.extract_weights_and_biases(trainModel)
+    sent_weights = FD_pb2.sentWeights(weights=weights,bias=bias,shape=shape)
+    response = stub.sendWeight(sent_weights)
+
+    # Reconstruct the latest received model
+    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+
+    # Update the local model
+    diabetes.save_model(model, "referenceModel.pkl")
+    # Your background task logic goes here
+    print("Scheduled task executed!")
+
+# Schedule the task to run every 30 minutes
+schedule.every(30).minutes.at(":00").do(scheduled_task)
+schedule.every(30).minutes.at(":30").do(scheduled_task)
+
+# Function used during init to get the latest model from the server
+def getModel():
+    result = FD_pb2.startValue(number=1)
+    response = stub.getModel(result)
+
+    # Reconstruct the weights into a model
+    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+    # Save the model locally
+    diabetes.save_model(model, "referenceModel.pkl")
+    return model
+
+model = getModel()
 
 # Utility functions
 def convertStrsToFloats(dictionary):
@@ -85,12 +143,8 @@ class personDetails():
 
 @app.route("/")
 def homePage():
-    try:
-        all_patients = Patient.query.all()
-        return render_template("patients.html", patients=all_patients)
-    except Exception as e:
-        return "Error: " + str(e)
-
+    dataRetrieved = Patients.query.all()
+    flash(f'{dataRetrieved}')
     return render_template("index.html")
 
 @app.route("/results")
@@ -103,20 +157,44 @@ def resultPage():
     prediction_result = request.args.get("prediction_result")
     return render_template("results.html",  prediction_result=prediction_result)
 
-@app.route("/trainModel")
+@app.route("/trainModel", methods=['GET', 'POST'])
 def trainModel():
-    trainingData = pd.DataFrame(answeredList)
+    # Check if at least 3 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
+    global answeredList, readyToTrain, newModel, model
+    # Diagnosis results
+    result = set()
+    if (not readyToTrain):
+        for data_dict in answeredList:
+            if len(result) < 2:
+                print("System not ready yet for training")
+                if "Diabetes" in data_dict:
+                    result.add(data_dict["Diabetes"])
+            else:
+                print("System ready to be trained")
+                readyToTrain = True
+                break
 
-    # # Send data for training
-    model = diabetes.train_existing_model(model, trainingData)
-    diabetes.save_model(model)
-    # Reload model
-    model = diabetes.load_model("model.pkl")
+    if (readyToTrain and request.method == 'POST'):
+        print("Training has started")
+        # Convert  of answered and diagnosed by the doctor into a pandas dataframe
+        trainingData = pd.DataFrame(answeredList)
+
+        # # Send data for training
+        model = diabetes.train_existing_model(model, trainingData)
+        diabetes.save_model(model, "trainingModel.pkl")
+
+        # Clean up
+        readyToTrain = False
+        # Since new data can be trained, know that it can be sent to the server to aggregate
+        newModel = True
+        answeredList = []
+        return redirect(url_for("homePage"))
 
     # Check if the model name hash matches with the local database hash model through an API
     # if not, then claim the new model through the API again
     # train the model iteratively locally and store the model's training weights and bias' in the database
-    return redirect(url_for("homePage"))
+    return render_template("training.html", readyToTrain=readyToTrain)
+
 @app.route("/sendModel")
 def sendModel():
     # Check if the model name hash matches with the local database hash model through an API
@@ -149,7 +227,6 @@ def doctors():
         # remove those indexes that the doctor actually categorises
         personList = popBasedOnIndexes(personList, selected_indexes)
 
-    flash("Successfully ")
     return render_template('doctors.html', personList=personList)
 
 @app.route("/questions", methods=["POST", "GET"])
@@ -176,6 +253,11 @@ def prediction():
         # All the values in the keys being inserted into the dictionary are currently Strings, calling this function to convert them into float values, if not needed, then remove
         convertStrsToFloats(patientDetails)
 
+        content = form.request['HighBP']
+        newPatient = Patients(content=content)
+        db.session.add(newPatient)
+        db.session.commit()
+
         # Instantiate the new person
         newPerson = personDetails(patientDetails)
         # Use the more efficient way later on pls
@@ -190,24 +272,6 @@ def prediction():
         # Add him/her into the local list of personLists for the doctors to use, for every person that their data is cleared up, they are cleared off the list
         personList.append(newPerson)
 
-        high_bp = float(request.form['q1'])
-        high_chol = float(request.form['q2'])
-        chol_check = float(request.form['q3'])
-        bmi = float(request.form['q4'])
-        smoker = float(request.form['q5'])
-        stroke = float(request.form['q6'])
-        heart_disease_or_attack = float(request.form['q7'])
-        phys_activity = float(request.form['q8'])
-        fruits = float(request.form['q9'])
-        veggies = float(request.form['q10'])
-        hvy_alcohol_consump = float(request.form['q11'])
-        phys_hlth = float(request.form['q12'])
-        diff_walk = float(request.form['q13'])
-        sex = float(request.form['q14'])
-        age = float(request.form['q15'])
-        patient = Patient(high_bp=high_bp, high_chol=high_chol, chol_check=chol_check, bmi=bmi, smoker=smoker, stroke=stroke, heart_disease_or_attack=heart_disease_or_attack,phys_activity=phys_activity, fruits=fruits, veggies=veggies, hvy_alcohol_consump=hvy_alcohol_consump, phys_hlth=phys_hlth, diff_walk=diff_walk, sex=sex, age=age)
-        db.session.add(patient)
-        db.session.commit()
         print("New patient added!\n")
         print(f"Number of patients currently in list is: {len(personList)}")
 
@@ -216,10 +280,19 @@ def prediction():
     # else condition for get request
     return render_template('questions.html', form=form)
 
+# Create a threaded schedule task
+def run_scheduled_task():
+    while True:
+        schedule.run_pending()  # Check and run scheduled tasks
+        time.sleep(1) 
+
 if __name__ == "__main__":
-    #with app.app_context():
-    #    db.create_all()
-    #    createTableQuery = "CREATE TABLE IF NOT EXISTS patients(id INT, HighBP FLOAT, HighChol FLOAT, PRIMARY KEY (id));"
-    #    cur = db.connection.cursor()
-    #    cur.execute(createTableQuery)
+    # Create a thread for the background task
+    task_thread = threading.Thread(target=run_scheduled_task)
+    task_thread.daemon = True  # Set as daemon to allow clean exit
+
+    # Start the background task thread
+    task_thread.start()
+
+    # Run Flask on the main thread
     app.run(debug=True)

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Patients</title>
+    <!-- Add any additional stylesheet links here -->
+</head>
+<body>
+    <h1>All Patients</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Content</th>
+            <th>High BP</th>
+            <th>High Cholesterol</th>
+            <!-- Add more headers for each patient attribute -->
+            <th>Labelled</th>
+        </tr>
+        {% for patient in patients %}
+        <tr>
+            <td>{{ patient.id }}</td>
+            <td>{{ patient.content }}</td>
+            <td>{{ 'Yes' if patient.high_bp else 'No' }}</td>
+            <td>{{ 'Yes' if patient.high_chol else 'No' }}</td>
+            <!-- Add more data cells for each patient attribute -->
+            <td>{{ 'Yes' if patient.labelled else 'No' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
