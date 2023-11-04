@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}The Doctors Backlog{% endblock %}
+{% block content %}
+{%  if personList|length >= 1 %}
+      <div class="container-fluid">
+        {% for person in personList %}
+        <b><label for="Patient {{ loop.index+1 }}">Patient: {{ loop.index }}</label></b>
+        <br><br>
+        <div>
+          Blood Pressure: <b>{{ person.high_bp}}</b><br>
+          Cholesterol Levels: <b>{{ person.high_chol }}</b><br>
+          Recent (5years) Cholesterol Levels: <b>{{ person.chol_check }}</b><br>
+          BMI: <b>{{ person.bmi }}</b><br>
+          Smoking Status: <b>{{ person.smoker }}</b><br>
+          Stroke Status: <b>{{ person.stroke }}</b><br>
+          Heart Disease or Attack: <b>{{ person.heart_disease_or_attack }}</b><br>
+          Physical Activity: <b>{{ person.phys_activity }}</b><br>
+          Fruits consumption: <b>{{ person.fruits }}</b><br>
+          Veggies: <b>{{ person.veggies }}</b><br>
+          Alcohol consumption: <b>{{ person.hvy_alcohol_consump }}</b><br>
+          Physical Health: <b>{{ person.phys_hlth }}</b><br>
+          Difficulties Walking: <b>{{ person.diff_walk }}</b><br>
+          Gender: <b>{{ person.sex }}</b><br>
+          Age Group: <b>{{ person.age }}</b><br><br>
+          Label: <b>{{ person.label }}</b><br>
+          Labelled: <b>{{ person.labelled }}</b><br><br>
+          Sent: <b>{{ person.sent }}</b><br>
+          
+        </div>
+        {% endfor %}
+        <br>
+        <br><br><br>
+      </div>
+
+
+{% else %} 
+<div class="container-fluid">
+  <p>Currently {{ personList|length }} Patients to categorise... Go relax somewhere</p>
+</div>
+{% endif %}
+
+{% endblock %}
