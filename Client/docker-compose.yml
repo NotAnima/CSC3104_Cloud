@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   web:
+    # image: dereknan/cloud-client:latest
+    container_name: pythonFlaskApp
     build: 
       context: .
     ports:
@@ -10,9 +12,10 @@ services:
     depends_on:
       - db
     networks:
-      - mynetwork
+      - cloudNet
 
   db:
+    container_name: postgresdb
     image: postgres:latest
     environment:
       - POSTGRES_USER=user
@@ -22,10 +25,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - mynetwork
+      - cloudNet
 
 networks:
-  mynetwork: 
+  cloudNet: 
 
 volumes:
   postgres_data: 

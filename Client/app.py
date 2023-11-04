@@ -30,6 +30,8 @@ class Patient(db.Model):
     diff_walk = db.Column(db.Float, nullable=False)  # Assuming 0 for No, 1 for Yes
     sex = db.Column(db.Float, nullable=False)  # Assuming 0 for Female, 1 for Male
     age = db.Column(db.Float, nullable=False)  # Assuming an integer representation for age groups
+
+    # These fields are only ever updated by function calls and commits by the doctor and trainModel
     label = db.Column(db.Float, nullable=True)
     labelled = db.Column(db.Boolean, nullable=False, default=False)
     sent = db.Column(db.Boolean, nullable=False, default=False)
@@ -53,9 +55,6 @@ class Patient(db.Model):
 
 readyToTrain = False
 newModel = False
-personList = [] # stores every form entry [personDetails class]locally so long as the server doesn't shutdown, can be stored long term by writing into a csv
-#piledCacheCategories = [] # for the usage of sending the categories of each patient before nuking them from personList
-answeredList = [] # Contains the doctors results if they have diabetes or not, to be used to pass into the AI training model
 channel = grpc.insecure_channel("dereknan.click:50051")
 stub = FD_pb2_grpc.ModelServiceStub(channel)
 
@@ -127,57 +126,31 @@ class userForm(FlaskForm):
 
 # remember to implement AES for data encryption when sending gRPC over the network
 
-
-# Usage; personList = popBasedOnIndexes(personList, doctorsRepliesOfPatients)
-#def popBasedOnIndexes(personList, indexesToPop):
-#    newList = [personList[i] for i in range(len(personList)) if i not in indexesToPop]
-#    return newList
-
-
-class personDetails():
-    def __init__(self, dictionary):
-        self.information = dictionary
-    
-    def getDetails(self):
-        return self.information
-    
-    def getKeyValue(self):
-        return self.information.values()
-
 @app.route("/")
 def homePage():
-    #try:
-    #    all_patients = Patient.query.all()
-    #    return render_template("patients.html", patients=all_patients)
-    #except Exception as e:
-    #    return "Error: " + str(e)
 
     return render_template("index.html")
 
 @app.route("/results")
 def resultPage():
-    global personList
-    # TEMP TO BE REMOVED
-    # practicePatient = {'HighBP': 1.0, 'HighChol': 1.0, 'CholCheck': 1.0, 'BMI': 21.0, 'Smoker': 1.0, 'Stroke': 1.0, 'HeartDiseaseorAttack': 1.0, 'PhysActivity': 1.0, 'Fruits': 1.0, 'Veggies': 1.0, 'HvyAlcoholConsump': 1.0, 'PhysHlth': 1.0, 'DiffWalk': 1.0, 'Sex': 1.0, 'Age': 5.0}
-    # personList.append(personDetails(practicePatient))
-    # REMOVE EVERYTHING ABOVE
+
     prediction_result = request.args.get("prediction_result")
     return render_template("results.html",  prediction_result=prediction_result)
 
 @app.route("/trainModel", methods=['GET', 'POST'])
 def trainModel():
-    # Check if at least 3 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
-    global answeredList, readyToTrain, newModel, model
+
+    # Check if at least 2 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
+    global readyToTrain, newModel, model
     foundPatients = Patient.query.filter_by(labelled=True, sent=False).all() # returns Patient objects
     # Diagnosis results
     result = set()
     if (not readyToTrain):
-        #for data_dict in answeredList:
          for patient in foundPatients:
-            if len(result) < 2:
+            if len(result) <= 1:
                 print("System not ready yet for training")
-                if patient.label != None: # if this has a
-                    result.add(patient.label) # add the patient.Label field
+                if patient.label != None: # should not be the case since if labelled=True, should have a label value associated with it
+                    result.add(patient.label) # add the patient.label field
             else:
                 print("System ready to be trained")
                 readyToTrain = True
@@ -185,18 +158,23 @@ def trainModel():
 
     if (readyToTrain and request.method == 'POST'):
         print("Training has started")
-        # Convert  of answered and diagnosed by the doctor into a pandas dataframe
-        trainingData = pd.DataFrame(answeredList)
+        # Convert all the foundPatients diagnosed by the doctor into a pandas dataframe
+        trainingData = pd.DataFrame(foundPatients)
 
         # # Send data for training
         model = diabetes.train_existing_model(model, trainingData)
         diabetes.save_model(model, "trainingModel.pkl")
 
+        # updating the db to be such that these patient details have already been used for training and won't be used again in the future
+        for patient in foundPatients:
+            patient.sent = True
+        db.session.commit()
+
         # Clean up
+
         readyToTrain = False
-        # Since new data can be trained, know that it can be sent to the server to aggregate
         newModel = True
-        answeredList = []
+        # answeredList = []
         return redirect(url_for("homePage"))
 
     # Check if the model name hash matches with the local database hash model through an API
@@ -204,77 +182,61 @@ def trainModel():
     # train the model iteratively locally and store the model's training weights and bias' in the database
     return render_template("training.html", readyToTrain=readyToTrain)
 
-@app.route("/sendModel")
-def sendModel():
-    # Check if the model name hash matches with the local database hash model through an API
-    # If no, then prompt user to claim a new model and train it first
-    # If yes, then query from the local/cloud database and then send the model over to the server through the API
-    return redirect(url_for("homePage"))
-
 @app.route('/doctors', methods=['GET', 'POST'])
 def doctors():
-    global personList, model, answeredList
+
+    global model
     foundPatients = Patient.query.filter_by(labelled=False).all()
-    # global piledCacheCategories
+
     if request.method == 'POST':
         # Create an empty list to store the selected indexes
-        selected_indexes = []
         dataList = request.form
 
-        # slice the dictionary to not include the last POST request key which is for 'submit'
+        # slice the array of dictionaries dataList to not include the last POST request key which is for 'submit'
         for indexKey, value in list(dataList.items())[:-1]: 
-            if dataList[indexKey] != None:
-                # converts the string that is passed back and then is typecasted into an integer and -1 for the 0th indexing start
-                # selected_indexes.append((int(indexKey)-1))
-                
+            if dataList[indexKey] != None:                
                 # update those based off the form request value and mark this patient as labelled in the db
                 foundPatients[(int(indexKey)-1)].label = value
                 foundPatients[(int(indexKey)-1)].labelled = True
-
+        # update the db for the atomic changes
         db.session.commit()
-        # Create a new list that only has the patient data and the doctors result if they have diabetes or not
-        for idx in selected_indexes:
-            # personList[idx].information["Diabetes"] = request.form.get(str(idx+1))
-            answeredList.append(foundPatients[idx])
-        
-        # to retrieve the 0,1,2 from each radio button, just add get the value from each key that iterates through
-        # remove those indexes that the doctor actually categorises
-        #personList = popBasedOnIndexes(personList, selected_indexes)
+
+    # get the newly updated leftovers if any and display them onto the webpage
     foundPatients = Patient.query.filter_by(labelled=False).all()
     return render_template('doctors.html', personList=foundPatients)
 
 @app.route("/questions", methods=["POST", "GET"])
 def prediction():
+
     form = userForm()
     if form.validate_on_submit():
         patientDetails = {}
-        patientDetails['HighBP'] = request.form['q1']
-        patientDetails['HighChol'] = request.form['q2']
-        patientDetails['CholCheck'] = request.form['q3']
-        patientDetails['BMI'] = request.form['q4']
-        patientDetails['Smoker'] = request.form['q5']
-        patientDetails['Stroke'] = request.form['q6']
-        patientDetails['HeartDiseaseorAttack'] = request.form['q7']
-        patientDetails['PhysActivity'] = request.form['q8']
-        patientDetails['Fruits'] = request.form['q9']
-        patientDetails['Veggies'] = request.form['q10']
-        patientDetails['HvyAlcoholConsump'] = request.form['q11']
-        patientDetails['PhysHlth'] = request.form['q12']
-        patientDetails['DiffWalk'] = request.form['q13']
-        patientDetails['Sex'] = request.form['q14']
-        patientDetails['Age'] = request.form['q15']
+        patientDetails['high_bp'] = request.form['q1']
+        patientDetails['high_chol'] = request.form['q2']
+        patientDetails['chol_check'] = request.form['q3']
+        patientDetails['bmi'] = request.form['q4']
+        patientDetails['smoker'] = request.form['q5']
+        patientDetails['stroke'] = request.form['q6']
+        patientDetails['heart_disease_or_attack'] = request.form['q7']
+        patientDetails['phys_activity'] = request.form['q8']
+        patientDetails['fruits'] = request.form['q9']
+        patientDetails['veggies'] = request.form['q10']
+        patientDetails['hvy_alcohol_consump'] = request.form['q11']
+        patientDetails['phys_hlth'] = request.form['q12']
+        patientDetails['diff_walk'] = request.form['q13']
+        patientDetails['sex'] = request.form['q14']
+        patientDetails['age'] = request.form['q15']
 
         # All the values in the keys being inserted into the dictionary are currently Strings, calling this function to convert them into float values, if not needed, then remove
         convertStrsToFloats(patientDetails)
         
-        newPatient = Patient(patientDetails['HighBP'], patientDetails['HighChol'], patientDetails['CholCheck'], patientDetails['BMI'], patientDetails['Smoker'], patientDetails['Stroke'], patientDetails['HeartDiseaseorAttack'], patientDetails['PhysActivity'], patientDetails['Fruits'], patientDetails['Veggies'], patientDetails['HvyAlcoholConsump'], patientDetails['PhysHlth'], patientDetails['DiffWalk'], patientDetails['Sex'], patientDetails['Age'])
+        # create a new patient object to be stored into the db from the queried values
+        newPatient = Patient(patientDetails['high_bp'], patientDetails['high_chol'], patientDetails['chol_check'], patientDetails['bmi'], patientDetails['smoker'], patientDetails['stroke'], patientDetails['heart_disease_or_attack'], patientDetails['phys_activity'], patientDetails['fruits'], patientDetails['veggies'], patientDetails['hvy_alcohol_consump'], patientDetails['phys_hlth'], patientDetails['diff_walk'], patientDetails['sex'], patientDetails['age'])
         
         # Add this new patient into the database
         db.session.add(newPatient)
         db.session.commit()
-        # Instantiate the new person
-        newPerson = personDetails(patientDetails)
-        # Use the more efficient way later on pls
+
         # Transform data to be suitable for the model to predict
         predict = []
         for value in patientDetails.values():
@@ -283,14 +245,8 @@ def prediction():
         scaled_features = diabetes.reshape_data(predict)
         prediction_result = diabetes.make_prediction(model,scaled_features)
 
-        # Add him/her into the local list of personLists for the doctors to use, for every person that their data is cleared up, they are cleared off the list
-        #personList.append(newPerson)
-
-        # print("New patient added!\n")
-        # print(f"Number of patients currently in list is: {len(personList)}")
-
         return redirect(url_for("resultPage", prediction_result=prediction_result))
-        # return redirect(url_for('homePage'))
+
     # else condition for get request
     return render_template('questions.html', form=form)
 
@@ -300,6 +256,7 @@ def run_scheduled_task():
         schedule.run_pending()  # Check and run scheduled tasks
         time.sleep(1) 
 
+# run the app here
 if __name__ == "__main__":
     # Create a thread for the background task
     task_thread = threading.Thread(target=run_scheduled_task)
