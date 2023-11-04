@@ -25,28 +25,28 @@ def createPerson(personNum):
     return practicePatient
 
 data = read_data("diabetes_15_columns.csv")
-model = diabetes.load_model("model.pkl")
+model = diabetes.load_model("referenceModel.pkl")
 
-predict = []
-person = createPerson(1)
-for value in person.values():
-    predict.append(value)
+# predict = []
+# person = createPerson(1)
+# for value in person.values():
+#     predict.append(value)
 
-print(predict)
-print(len(predict))
-scaled_features = diabetes.reshape_data(predict)
-prediction_result = diabetes.make_prediction(model,scaled_features)
-print(prediction_result)
+# print(predict)
+# print(len(predict))
+# scaled_features = diabetes.reshape_data(predict)
+# prediction_result = diabetes.make_prediction(model,scaled_features)
+# print(prediction_result)
 
-# scaler = StandardScaler()
-# scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
 
-# X = scaled_features
-# y = data['Diabetes_012']
+X = scaled_features
+y = data['Diabetes_012']
 
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# # answer = model.predict(X_test)
-# diabetes.test_model(model, X_test, y_test)
+# answer = model.predict(X_test)
+diabetes.test_model(model, X_test, y_test)
 
 
