@@ -128,9 +128,9 @@ class userForm(FlaskForm):
 
 @app.route("/")
 def homePage():
-
+    #foundPatients = Patient.query.filter_by().all()
     return render_template("index.html")
-
+    #return render_template("test.html", personList=foundPatients)
 @app.route("/results")
 def resultPage():
 

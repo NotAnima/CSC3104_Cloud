@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    app: postgres
+data:
+  Postgres_DB: postgresdb
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv-volume
+  labels:
+    type: local
+    app: postgres
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data"
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  labels:
+    app: postgres
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres-container
+          image: postgres:latest
+          imagePullPolicy: "IfNotPresent"
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c 'CREATE TABLE IF NOT EXISTS patient (id SERIAL PRIMARY KEY, high_bp REAL NOT NULL, high_chol REAL NOT NULL, chol_check REAL NOT NULL, bmi REAL NOT NULL CHECK (bmi >= 0.0 AND bmi <= 251.1), smoker REAL NOT NULL, stroke REAL NOT NULL, heart_disease_or_attack REAL NOT NULL, phys_activity REAL NOT NULL, fruits REAL NOT NULL, veggies REAL NOT NULL, hvy_alcohol_consump REAL NOT NULL, phys_hlth REAL NOT NULL, diff_walk REAL NOT NULL, sex REAL NOT NULL, age REAL NOT NULL, label REAL NULL, labelled BOOL NOT NULL, sent BOOL NOT NULL);'"]
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: mydatabase
+            - name: POSTGRES_USER
+              value: user
+            - name: POSTGRES_PASSWORD
+              value: password          
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432  # The PostgreSQL port
+      targetPort: 5432  # The port inside the PostgreSQL container
