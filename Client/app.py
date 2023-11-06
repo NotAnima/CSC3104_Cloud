@@ -6,6 +6,7 @@ import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
 from os import environ
 from flask_sqlalchemy import SQLAlchemy
+import datetime as datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
@@ -53,6 +54,24 @@ class Patient(db.Model):
         self.sex = sex
         self.age = age
 
+class localmodel(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    localpickle = db.Column(db.Text, nullable=False)
+
+    def __init__(self, localpickle):
+        self.timestamp = datetime.now()
+        self.localpickle = localpickle
+
+class referencemodel(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    referencepickle = db.Column(db.Text, nullable=False)
+
+    def __init__(self, referencepickle):
+        self.timestamp = datetime.now()
+        self.referencepickle = referencepickle
+        
 readyToTrain = False
 newModel = False
 channel = grpc.insecure_channel("dereknan.click:50051")
@@ -129,6 +148,10 @@ class userForm(FlaskForm):
 
 @app.route("/")
 def homePage():
+    modelToTrain = localmodel.query.filter_by().all()
+    modelToRefer = referencemodel.query.filter_by().all()
+    print(len(modelToTrain))
+    print(len(modelToRefer))
     #foundPatients = Patient.query.filter_by().all()
     return render_template("index.html")
     #return render_template("test.html", personList=foundPatients)
