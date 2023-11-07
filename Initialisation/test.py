@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@postgres-ser
 db = SQLAlchemy(app)
 
 class aggregatedmodel(db.Model):
+    __tablename__ = 'model'
     id = Column(Integer, primary_key=True, autoincrement=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now())
     referencepickle = Column(Text, nullable=False)
