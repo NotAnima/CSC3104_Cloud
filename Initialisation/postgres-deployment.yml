@@ -60,7 +60,7 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/sh","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c 'CREATE TABLE IF NOT EXISTS models(id SERIAL PRIMARY KEY, timestamp TIMESTAMP NOT NULL, referencepickle TEXT NOT NULL);'"]
+                command: ["/bin/sh","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c 'CREATE TABLE IF NOT EXISTS aggregatedmodel(id SERIAL PRIMARY KEY, timestamp TIMESTAMP NOT NULL, referencepickle TEXT NOT NULL);'"]
           ports:
             - containerPort: 5432
           env:

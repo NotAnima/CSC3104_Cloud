@@ -10,19 +10,19 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@postgres-ser
 
 db = SQLAlchemy(app)
 
-class ReferenceModel(db.Model):
+class aggregatedmodel(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now())
     referencepickle = Column(Text, nullable=False)
 
 # Function to get the last item inserted into the models table
 def get_last_item():
-    last_item = ReferenceModel.query.order_by(ReferenceModel.id.desc()).first()
+    last_item = aggregatedmodel.query.order_by(aggregatedmodel.id.desc()).first()
     return last_item
 
 # Function to insert a new entry into the models table
 def insert_new_entry(modelData):
-    new_model = ReferenceModel(referencepickle=modelData)
+    new_model = aggregatedmodel(referencepickle=modelData)
     db.session.add(new_model)
     db.session.commit()
     print(f'New entry added with pickle reference: {modelData}')

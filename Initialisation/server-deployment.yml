@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grpc-app
+  name: FD-app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: grpcapp
+      app: FDapp
   template:
     metadata:
       labels:
-        app: grpcapp
+        app: FDapp
     spec:
       containers:
         - name: grpc-server
@@ -24,10 +24,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: grpc-app-service
+  name: FD-app-service
 spec:
   selector:
-    app: grpcapp
+    app: FDapp
   ports:
     - protocol: TCP
       port: 50051  # Expose port 50051 for your grpc service
