@@ -6,7 +6,7 @@ import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
 from os import environ
 from flask_sqlalchemy import SQLAlchemy
-import datetime as datetime
+import datetime, pickle
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
