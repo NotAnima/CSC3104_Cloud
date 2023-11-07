@@ -81,6 +81,7 @@ stub = FD_pb2_grpc.ModelServiceStub(channel)
 def scheduled_task():
     global model, weights, bias
 
+    # Include query rather than pulling by local pkl file
     try:
         # Load training model
         trainModel = diabetes.load_model("trainingModel.pkl")

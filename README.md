@@ -1,5 +1,14 @@
 # CSC3104_Cloud
 
+## Installation
+Ensure you have docker, kubernetes, python 3.10 and have installed all the dependencies in the the requirements.txt before proceeding
+### Client
+Within the Server folder, run `kubectl apply -f deployment.yaml` (Kuang Yi update this part)
+
+### Server
+Within the Server folder, run `kubectl apply -f deployment.yaml`
+
+
 ## Dataset Used
 > [Dataset Used](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset/data?select=diabetes_binary_5050split_health_indicators_BRFSS2015.csv)
 
