@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flaskapp
+  name: grpc-app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: pythonflaskapp
+      app: grpcapp
   template:
     metadata:
       labels:
-        app: pythonflaskapp
+        app: grpcapp
     spec:
       containers:
-        - name: pythonflaskapp
-          image: notanima/csc_3104:latest
+        - name: grpc-server
+          image: dereknan/cloud-server-arm64:test
           ports:
-            - containerPort: 5000
+            - containerPort: 50051
           env:
             - name: DATABASE_URL
               value: "postgresql://user:password@postgres-service:5432/mydatabase"
@@ -24,12 +24,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-app-service
+  name: grpc-app-service
 spec:
   selector:
-    app: pythonflaskapp
+    app: grpcapp
   ports:
     - protocol: TCP
-      port: 80  # The port on the service (external access)
-      targetPort: 5000  # The port on the pods (containerPort)
+      port: 50051  # Expose port 50051 for your grpc service
+      targetPort: 50051  # The port on the pods (containerPort)
   type: LoadBalancer  # Use 'LoadBalancer' type if you want to expose your service externally
