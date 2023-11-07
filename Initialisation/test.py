@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 
 class ReferenceModel(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(DateTime, nullable=False, default=datetime.now())
+    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now())
     referencepickle = Column(Text, nullable=False)
 
 # Function to get the last item inserted into the models table
