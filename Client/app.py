@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
 app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
-domain = environ['DATABASE_URL'] + ":50051"
+domain = environ['DOMAIN'] + ":50051"
 
 db = SQLAlchemy(app)
 
@@ -54,8 +54,6 @@ class Patient(db.Model):
         self.sex = sex
         self.age = age
 
-readyToTrain = False
-newModel = False
 channel = grpc.insecure_channel(domain)
 stub = FD_pb2_grpc.ModelServiceStub(channel)
 
@@ -105,6 +103,30 @@ def convertStrsToFloats(dictionary):
     for key, value in dictionary.items():
         dictionary[key] = float(value)
 
+def dictionarize(patientList):
+    listOfDicts = []
+
+    for patient in patientList:
+        patientDetails = {}
+        patientDetails['high_bp'] = patient.high_bp
+        patientDetails['high_chol'] = patient.high_chol
+        patientDetails['chol_check'] = patient.chol_check
+        patientDetails['bmi'] = patient.bmi
+        patientDetails['smoker'] = patient.smoker
+        patientDetails['stroke'] = patient.stroke
+        patientDetails['heart_disease_or_attack'] = patient.heart_disease_or_attack
+        patientDetails['phys_activity'] = patient.phys_activity
+        patientDetails['fruits'] = patient.fruits
+        patientDetails['veggies'] = patient.veggies
+        patientDetails['hvy_alcohol_consump'] = patient.hvy_alcohol_consump
+        patientDetails['phys_hlth'] = patient.phys_hlth
+        patientDetails['diff_walk'] = patient.diff_walk
+        patientDetails['sex'] = patient.sex
+        patientDetails['age'] = patient.age
+        patientDetails['Diabetes'] = patient.label
+
+        listOfDicts.append(patientDetails)
+    return listOfDicts
 
 class userForm(FlaskForm):
     q1 = RadioField('Q1: Do you have high blood pressure?', validators=[DataRequired()], choices=[('0', 'Low Blood Pressure'), ('1', 'High Blood Pressure')])
@@ -118,7 +140,7 @@ class userForm(FlaskForm):
     q9 = RadioField('Q9: Do you consume fruit 1 or more times a day?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q10 = RadioField('Q10: Do you introduce Vegetables 1 or more times a day in your diet?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q11 = RadioField('Q11: Do you consume Alcohol heavily (Adults)? For Men: More than 14 Drinks per week. For Women: More than 7 Drinks per week', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
-    q12 = RadioField('Q12: For the last 30 days, how many days have you not been feeling well?', validators=[DataRequired(), NumberRange(min=0.0, max=30.0)])
+    q12 = FloatField('Q12: For the last 30 days, how many days have you not been feeling well?', validators=[DataRequired(), NumberRange(min=0.0, max=30.0)])
     q13 = RadioField('Q13: Do you have difficulties walking or climbing up the stairs?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q14 = RadioField('Q14: What is your sex?', validators=[DataRequired()], choices=[('0', 'Female'), ('1', 'Male')])
     q15 = RadioField('Q15: What is your age group?', validators=[DataRequired()], choices=[('1', '18-24'), ('2', '25-29'), ('3', '30-34'), ('4', '35-39'), ('5', '40-44'), ('6', '45-49'), ('7', '50-54'), ('8', '55-59'), ('9', '60-64'), ('10', '65-69'), ('11', '70-74'), ('12', '75-79'), ('13', '80+'), ])
@@ -141,27 +163,28 @@ def resultPage():
 
 @app.route("/trainModel", methods=['GET', 'POST'])
 def trainModel():
+    global model
 
-    # Check if at least 2 types of diabetes has been diagnosed (No diabetes, Have diabetes, Pre-diabetes)
-    global readyToTrain, newModel, model
+    readyToTrain = False
+
     foundPatients = Patient.query.filter_by(labelled=True, sent=False).all() # returns Patient objects
-    # Diagnosis results
     result = set()
-    if (not readyToTrain):
-         for patient in foundPatients:
-            if len(result) <= 1:
-                print("System not ready yet for training")
-                if patient.label != None: # should not be the case since if labelled=True, should have a label value associated with it
-                    result.add(patient.label) # add the patient.label field
-            else:
-                print("System ready to be trained")
-                readyToTrain = True
-                break
+    
+    for patient in foundPatients:
+        if len(result) >= 2:
+            break
+        result.add(patient.label)
 
+    if len(result) < 2:
+        readyToTrain = False
+    else:
+        readyToTrain = True
+        
     if (readyToTrain and request.method == 'POST'):
         print("Training has started")
         # Convert all the foundPatients diagnosed by the doctor into a pandas dataframe
-        trainingData = pd.DataFrame(foundPatients)
+        patientsToTrain = dictionarize(foundPatients)
+        trainingData = pd.DataFrame(patientsToTrain)
 
         # # Send data for training
         model = diabetes.train_existing_model(model, trainingData)
@@ -172,16 +195,8 @@ def trainModel():
             patient.sent = True
         db.session.commit()
 
-        # Clean up
-
-        readyToTrain = False
-        newModel = True
-        # answeredList = []
         return redirect(url_for("homePage"))
 
-    # Check if the model name hash matches with the local database hash model through an API
-    # if not, then claim the new model through the API again
-    # train the model iteratively locally and store the model's training weights and bias' in the database
     return render_template("training.html", readyToTrain=readyToTrain)
 
 @app.route('/doctors', methods=['GET', 'POST'])
@@ -209,6 +224,7 @@ def doctors():
 
 @app.route("/questions", methods=["POST", "GET"])
 def prediction():
+    global model
 
     form = userForm()
     if form.validate_on_submit():
