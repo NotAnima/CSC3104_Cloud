@@ -12,6 +12,7 @@ import pickle
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
 app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
+domain = environ['DOMAIN'] + ":50051"
 
 db = SQLAlchemy(app)
 
@@ -75,7 +76,7 @@ class referencemodel(db.Model):
         
 readyToTrain = False
 newModel = False
-channel = grpc.insecure_channel("dereknan.click:50051")
+channel = grpc.insecure_channel(domain)
 stub = FD_pb2_grpc.ModelServiceStub(channel)
 
 # Check with server side if model matches up
