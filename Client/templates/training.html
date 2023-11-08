@@ -3,23 +3,14 @@
 {% block content %}
 {% if readyToTrain %}
 <form action="/trainModel" method = "post">
-<div class = "training">
-<p><b>Model is ready for training</b></p>
- <div class="container-fluid">
-      <div class="container">        
+<div class="container-fluid d-flex justify-content-center align-items-center" style="height: 85vh; font-size: 50px;">
+<p><b>Model is ready for training: </b></p><br>       
           <button>Start Training</button>
-      </div>
-      <br><br><br>
-    </div>
 </div>
 </form>
 {% else %}
-<div class="container mt-4"><!--style="background: linear-gradient(45deg, #EF32FF8E, #2282FF8E);"-->
-  <div class="row">
-      <!-- Left Column for Text Content -->
-      <div class="col-md-8">
-        <p>Model not ready for training yet, please gather more</p>
-  </div>
+<div class="container-fluid d-flex justify-content-center align-items-center" style="height: 85vh; font-size: 50px;">
+        <b><p>Model is not ready for training yet, please gather more</p></b>
 </div>
 
 {% endif%}
