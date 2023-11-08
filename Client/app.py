@@ -6,13 +6,11 @@ import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
 from os import environ
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import pickle
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
 app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
-domain = environ['DOMAIN'] + ":50051"
+domain = environ['DATABASE_URL'] + ":50051"
 
 db = SQLAlchemy(app)
 
@@ -56,24 +54,6 @@ class Patient(db.Model):
         self.sex = sex
         self.age = age
 
-class localmodel(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    timestamp = db.Column(db.Text, nullable=False)
-    picklefile = db.Column(db.LargeBinary, nullable=False)
-
-    def __init__(self, picklefile):
-        self.timestamp = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        self.picklefile = picklefile
-
-class referencemodel(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    timestamp = db.Column(db.Text, nullable=False)
-    picklefile = db.Column(db.LargeBinary, nullable=False)
-
-    def __init__(self, picklefile):
-        self.timestamp = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        self.picklefile = picklefile
-        
 readyToTrain = False
 newModel = False
 channel = grpc.insecure_channel(domain)
@@ -109,36 +89,15 @@ schedule.every(30).minutes.at(":30").do(scheduled_task)
 
 # Function used during init to get the latest model from the server
 def getModel():
-   # Check DB
-    try:
-        referenceQuery = referencemodel.query.filter_by().all()
-        if len(referenceQuery) < 1:
-            raise Exception
-        referenceQuery = referenceQuery[-1] # get the latest entry
-        referencePickle = referenceQuery.picklefile
-        model = pickle.loads(referencePickle)
-        return model
-    except:
-        try: 
-                # Get by gRPC
-                result = FD_pb2.startValue(number=1)
-                response = stub.getModel(result)
-                # Reconstruct the weights into a model
-                model = diabetes.train_base_model(response.weights, response.bias, response.shape)
-                # Save the model locally
-                diabetes.save_model(model, "firstModel.pkl")
+    result = FD_pb2.startValue(number=1)
+    response = stub.getModel(result)
 
-                with open("firstModel.pkl", "rb") as f:
-                    pickleBin = f.read()
-                    pickleObject = referencemodel(pickleBin)
-                    db.session.add(pickleObject)
-                    db.session.commit()
-                return model
-        except:
-            # Get local model
-            model = diabetes.load_model("baseModel.pkl")
-            return model
-   
+    # Reconstruct the weights into a model
+    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+    # Save the model locally
+    diabetes.save_model(model, "referenceModel.pkl")
+    return model
+
 model = getModel()
 
 # Utility functions
@@ -159,7 +118,7 @@ class userForm(FlaskForm):
     q9 = RadioField('Q9: Do you consume fruit 1 or more times a day?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q10 = RadioField('Q10: Do you introduce Vegetables 1 or more times a day in your diet?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q11 = RadioField('Q11: Do you consume Alcohol heavily (Adults)? For Men: More than 14 Drinks per week. For Women: More than 7 Drinks per week', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
-    q12 = FloatField('Q12: For the last 30 days, how many days have you not been feeling well?', validators=[DataRequired(), NumberRange(min=0.0, max=30.0)])
+    q12 = RadioField('Q12: For the last 30 days, how many days have you not been feeling well?', validators=[DataRequired(), NumberRange(min=0.0, max=30.0)])
     q13 = RadioField('Q13: Do you have difficulties walking or climbing up the stairs?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q14 = RadioField('Q14: What is your sex?', validators=[DataRequired()], choices=[('0', 'Female'), ('1', 'Male')])
     q15 = RadioField('Q15: What is your age group?', validators=[DataRequired()], choices=[('1', '18-24'), ('2', '25-29'), ('3', '30-34'), ('4', '35-39'), ('5', '40-44'), ('6', '45-49'), ('7', '50-54'), ('8', '55-59'), ('9', '60-64'), ('10', '65-69'), ('11', '70-74'), ('12', '75-79'), ('13', '80+'), ])
@@ -171,28 +130,14 @@ class userForm(FlaskForm):
 
 @app.route("/")
 def homePage():
-    modelToTrain = localmodel.query.filter_by().all()
-    modelToRefer = referencemodel.query.filter_by().all()
-    print(len(modelToTrain))
-    print(len(modelToRefer))
     #foundPatients = Patient.query.filter_by().all()
-    #return render_template("index.html")
+    return render_template("index.html")
     #return render_template("test.html", personList=foundPatients)
-    return render_template("modeltest.html", modelList=modelToRefer)
 @app.route("/results")
 def resultPage():
 
     prediction_result = request.args.get("prediction_result")
     return render_template("results.html",  prediction_result=prediction_result)
-
-@app.route("/testing")
-def oneTimeInsert():
-    with open("baseModel.pkl", "rb") as pickleFile:
-        pickleRead = pickleFile.read()
-        pickleObject = referencemodel(pickleRead)
-        db.session.add(pickleObject)
-        db.session.commit()
-    return render_template("index.html")
 
 @app.route("/trainModel", methods=['GET', 'POST'])
 def trainModel():
@@ -279,7 +224,7 @@ def prediction():
         patientDetails['fruits'] = request.form['q9']
         patientDetails['veggies'] = request.form['q10']
         patientDetails['hvy_alcohol_consump'] = request.form['q11']
-        patientDetails['phys_hlth'] = request.form['q12']
+        patientDetails['phys_hlth'] = round(float(request.form['q12'])) # Get the nearest integer by rounding
         patientDetails['diff_walk'] = request.form['q13']
         patientDetails['sex'] = request.form['q14']
         patientDetails['age'] = request.form['q15']
@@ -298,11 +243,6 @@ def prediction():
         predict = []
         for value in patientDetails.values():
             predict.append(value)
-
-        referenceQuery = referencemodel.query.filter_by().all()
-        referenceQuery = referenceQuery[-1] # get the latest entry
-        referencePickle = referenceQuery.picklefile
-        model = pickle.loads(referencePickle)
 
         scaled_features = diabetes.reshape_data(predict)
         prediction_result = diabetes.make_prediction(model,scaled_features)

@@ -1,46 +1,14 @@
 from concurrent import futures
-import grpc, FD_pb2, FD_pb2_grpc, datetime, diabetes, pickle
+import grpc, FD_pb2, FD_pb2_grpc, datetime, hashlib, diabetes
 import numpy as np
-from flask_sqlalchemy import SQLAlchemy
-from flask import Flask
-from os import environ
-from datetime import datetime
 # Global variable to hold all the aggregated data
 weights = []
 bias = []
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ['DATABASE_URL']
-
-db = SQLAlchemy(app)
-
-def initDB():
-    # Initialise the first model into the DB
-    with open("model.pkl", "rb") as f:
-        pickleBin = f.read()
-        pickleObject = globalmodel(pickleBin)
-        db.session.add(pickleObject)
-        db.session.commit()
-
-class globalmodel(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    timestamp = db.Column(db.Text, nullable=False)
-    picklefile = db.Column(db.LargeBinary, nullable=False)
-
-    def __init__(self, picklefile):
-        self.timestamp = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        self.picklefile = picklefile
-
+model = diabetes.load_model("model.pkl")
 
 class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
-    # Send either same or aggregated model
     def sendWeight(self, request_iterator, context):
-        global weights, bias
-        globalQuery = globalmodel.query.filter_by().all()
-        globalQuery = globalQuery[-1] # get the latest entry
-        referencePickle = globalQuery.picklefile
-        model = pickle.loads(referencePickle)
-
+        global weights, bias,model
         proper_weight = np.array(request_iterator.weights).reshape(request_iterator.shape)
         weights.append(proper_weight)
         bias.append(request_iterator.bias)
@@ -64,11 +32,11 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
             model = diabetes.train_average_model(new_weights, new_bias)
 
             # Reload model
-            pickleObject = globalmodel(model)
-            db.session.add(pickleObject)
-            db.session.commit()
+            diabetes.save_model(model, "model.pkl")
+            model = diabetes.load_model("model.pkl")
 
-            # Clear out models
+            hashResult = diabetes.calculate_md5("model.pkl")
+            print("Hash after training: " + str(hashResult))
             weights = []
             bias = []
 
@@ -87,14 +55,10 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
 
         return FD_pb2.weightResponse(weights=new_weights,bias=new_bias,shape=shape)
     
-    # Get model for first time initialisation of the client
     def getModel(self, request_iterator, context):
         time = getTime()
         print("Sending model: " + time)
-        globalQuery = globalmodel.query.filter_by().all()
-        globalQuery = globalQuery[-1] # get the latest entry
-        referencePickle = globalQuery.picklefile
-        model = pickle.loads(referencePickle)
+        global model
         weight, bias, shape = diabetes.extract_weights_and_biases(model)
 
         return FD_pb2.initialModel(weights=weight,bias=bias,shape=shape)

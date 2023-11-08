@@ -73,8 +73,6 @@ spec:
                   labelled BOOL NOT NULL, 
                   sent BOOL NOT NULL
                   );
-                  CREATE TABLE IF NOT EXISTS localmodel(id SERIAL PRIMARY KEY, timestamp TEXT NOT NULL, picklefile BYTEA NOT NULL);
-                  CREATE TABLE IF NOT EXISTS referencemodel(id SERIAL PRIMARY KEY, timestamp TEXT NOT NULL, picklefile BYTEA NOT NULL);
                   '"]
           ports:
             - containerPort: 5432
