@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import logging, schedule, time, datetime, random, grpc, FD_pb2, FD_pb2_grpc, diabetes
 import pandas as pd
-channel = grpc.insecure_channel("dereknan.click:50051")
+channel = grpc.insecure_channel("localhost:50051")
 stub = FD_pb2_grpc.ModelServiceStub(channel)
 
 def scheduled_task():
