@@ -107,17 +107,38 @@ schedule.every(30).minutes.at(":00").do(scheduled_task)
 schedule.every(30).minutes.at(":30").do(scheduled_task)
 
 # Function used during init to get the latest model from the server
-#def getModel():
-#    result = FD_pb2.startValue(number=1)
-#    response = stub.getModel(result)
-#
-#    # Reconstruct the weights into a model
-#    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
-#    # Save the model locally
-#    diabetes.save_model(model, "referenceModel.pkl")
-#    return model
-#
-#model = getModel()
+def getModel():
+   # Check DB
+    try:
+        referenceQuery = referencemodel.query.filter_by().all()
+        if len(referenceQuery) < 1:
+            raise Exception
+        referenceQuery = referenceQuery[-1] # get the latest entry
+        referencePickle = referenceQuery.picklefile
+        model = pickle.loads(referencePickle)
+        return model
+    except:
+        try: 
+                # Get by gRPC
+                result = FD_pb2.startValue(number=1)
+                response = stub.getModel(result)
+                # Reconstruct the weights into a model
+                model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+                # Save the model locally
+                diabetes.save_model(model, "firstModel.pkl")
+
+                with open("firstModel.pkl", "rb") as f:
+                    pickleBin = f.read()
+                    pickleObject = referencemodel(pickleBin)
+                    db.session.add(pickleObject)
+                    db.session.commit()
+                return model
+        except:
+            # Get local model
+            model = diabetes.load_model("baseModel.pkl")
+            return model
+   
+model = getModel()
 
 # Utility functions
 def convertStrsToFloats(dictionary):
