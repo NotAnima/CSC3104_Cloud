@@ -6,7 +6,7 @@ import diabetes, schedule, time, threading, grpc, FD_pb2, FD_pb2_grpc
 import pandas as pd
 from os import environ
 from flask_sqlalchemy import SQLAlchemy
-import datetime as datetime
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
@@ -56,21 +56,21 @@ class Patient(db.Model):
 
 class localmodel(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    timestamp = db.Column(db.DateTime, nullable=False)
-    localpickle = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.Text, nullable=False)
+    picklefile = db.Column(db.LargeBinary, nullable=False)
 
-    def __init__(self, localpickle):
-        self.timestamp = datetime.now()
-        self.localpickle = localpickle
+    def __init__(self, picklefile):
+        self.timestamp = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        self.picklefile = picklefile
 
 class referencemodel(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    timestamp = db.Column(db.DateTime, nullable=False)
-    referencepickle = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.Text, nullable=False)
+    picklefile = db.Column(db.LargeBinary, nullable=False)
 
-    def __init__(self, referencepickle):
-        self.timestamp = datetime.now()
-        self.referencepickle = referencepickle
+    def __init__(self, picklefile):
+        self.timestamp = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        self.picklefile = picklefile
         
 readyToTrain = False
 newModel = False
@@ -106,17 +106,17 @@ schedule.every(30).minutes.at(":00").do(scheduled_task)
 schedule.every(30).minutes.at(":30").do(scheduled_task)
 
 # Function used during init to get the latest model from the server
-def getModel():
-    result = FD_pb2.startValue(number=1)
-    response = stub.getModel(result)
-
-    # Reconstruct the weights into a model
-    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
-    # Save the model locally
-    diabetes.save_model(model, "referenceModel.pkl")
-    return model
-
-model = getModel()
+#def getModel():
+#    result = FD_pb2.startValue(number=1)
+#    response = stub.getModel(result)
+#
+#    # Reconstruct the weights into a model
+#    model = diabetes.train_base_model(response.weights, response.bias, response.shape)
+#    # Save the model locally
+#    diabetes.save_model(model, "referenceModel.pkl")
+#    return model
+#
+#model = getModel()
 
 # Utility functions
 def convertStrsToFloats(dictionary):
@@ -136,7 +136,7 @@ class userForm(FlaskForm):
     q9 = RadioField('Q9: Do you consume fruit 1 or more times a day?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q10 = RadioField('Q10: Do you introduce Vegetables 1 or more times a day in your diet?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q11 = RadioField('Q11: Do you consume Alcohol heavily (Adults)? For Men: More than 14 Drinks per week. For Women: More than 7 Drinks per week', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
-    q12 = RadioField('Q12: For the last 30 days, how many days have you not been feeling well?', validators=[DataRequired(), NumberRange(min=0.0, max=30.0)])
+    q12 = FloatField('Q12: For the last 30 days, how many days have you not been feeling well?', validators=[DataRequired(), NumberRange(min=0.0, max=30.0)])
     q13 = RadioField('Q13: Do you have difficulties walking or climbing up the stairs?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q14 = RadioField('Q14: What is your sex?', validators=[DataRequired()], choices=[('0', 'Female'), ('1', 'Male')])
     q15 = RadioField('Q15: What is your age group?', validators=[DataRequired()], choices=[('1', '18-24'), ('2', '25-29'), ('3', '30-34'), ('4', '35-39'), ('5', '40-44'), ('6', '45-49'), ('7', '50-54'), ('8', '55-59'), ('9', '60-64'), ('10', '65-69'), ('11', '70-74'), ('12', '75-79'), ('13', '80+'), ])
@@ -153,13 +153,23 @@ def homePage():
     print(len(modelToTrain))
     print(len(modelToRefer))
     #foundPatients = Patient.query.filter_by().all()
-    return render_template("index.html")
+    #return render_template("index.html")
     #return render_template("test.html", personList=foundPatients)
+    return render_template("modeltest.html", modelList=modelToRefer)
 @app.route("/results")
 def resultPage():
 
     prediction_result = request.args.get("prediction_result")
     return render_template("results.html",  prediction_result=prediction_result)
+
+@app.route("/testing")
+def oneTimeInsert():
+    with open("referenceModel.pkl", "rb") as pickleFile:
+        pickleRead = pickleFile.read()
+        pickleObject = referencemodel(pickleRead)
+        db.session.add(pickleObject)
+        db.session.commit()
+    return render_template("index.html")
 
 @app.route("/trainModel", methods=['GET', 'POST'])
 def trainModel():
