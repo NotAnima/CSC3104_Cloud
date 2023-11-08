@@ -131,7 +131,7 @@ def dictionarize(patientList):
 class userForm(FlaskForm):
     q1 = RadioField('Q1: Do you have high blood pressure?', validators=[DataRequired()], choices=[('0', 'Low Blood Pressure'), ('1', 'High Blood Pressure')])
     q2 = RadioField('Q2: Do you have high cholesterol?', validators=[DataRequired()], choices=[('0', 'No High Cholesterol'), ('1', 'High Cholesterol')])
-    q3 = RadioField('Q3: Have you have high cholesterol in the last 5 years?', validators=[DataRequired()], choices=[('0', 'Not in the last 5 years'), ('1', 'Yes, it was within the last 5 years')])
+    q3 = RadioField('Q3: Have you had your cholesterol checked in the last 5 years?', validators=[DataRequired()], choices=[('0', 'Not in the last 5 years'), ('1', 'Yes, it was within the last 5 years')])
     q4 = FloatField('Q4: What is your BMI? E.g: 23.42', validators=[DataRequired(), NumberRange(min=0.0, max=251.1)]) # 251.1 is the highest recorded BMI in the world
     q5 = RadioField('Q5: Have you smoked more than 100 cigarettes in your lifetime?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
     q6 = RadioField('Q6: Have you ever had a stroke before?', validators=[DataRequired()], choices=[('0', 'No'), ('1', 'Yes')])
