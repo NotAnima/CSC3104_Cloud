@@ -7,6 +7,7 @@ import pandas as pd
 from os import environ
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import pickle
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "Banana73"
@@ -164,7 +165,7 @@ def resultPage():
 
 @app.route("/testing")
 def oneTimeInsert():
-    with open("referenceModel.pkl", "rb") as pickleFile:
+    with open("baseModel.pkl", "rb") as pickleFile:
         pickleRead = pickleFile.read()
         pickleObject = referencemodel(pickleRead)
         db.session.add(pickleObject)
@@ -275,6 +276,11 @@ def prediction():
         predict = []
         for value in patientDetails.values():
             predict.append(value)
+
+        referenceQuery = referencemodel.query.filter_by().all()
+        referenceQuery = referenceQuery[-1] # get the latest entry
+        referencePickle = referenceQuery.picklefile
+        model = pickle.loads(referencePickle)
 
         scaled_features = diabetes.reshape_data(predict)
         prediction_result = diabetes.make_prediction(model,scaled_features)
