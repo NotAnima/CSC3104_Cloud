@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fdserver
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fdserver
+  template:
+    metadata:
+      labels:
+        app: fdserver
+    spec:
+      containers:
+        - name: fdserver
+          image: dereknan/cloud-server-arm64:latest
+          imagePullPolicy: Always
+          env:
+            - name: TZ
+              value: Asia/Singapore
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fdserver
+  namespace: default
+spec:
+  selector:
+    app: fdserver
+  ports:
+    - name: port-0
+      port: 50051
+      targetPort: 50051
+  type: LoadBalancer
