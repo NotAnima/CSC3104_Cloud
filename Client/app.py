@@ -279,7 +279,7 @@ def prediction():
         patientDetails['fruits'] = request.form['q9']
         patientDetails['veggies'] = request.form['q10']
         patientDetails['hvy_alcohol_consump'] = request.form['q11']
-        patientDetails['phys_hlth'] = round(float(request.form['q12'])) # Get the nearest integer by rounding
+        patientDetails['phys_hlth'] = request.form['q12']
         patientDetails['diff_walk'] = request.form['q13']
         patientDetails['sex'] = request.form['q14']
         patientDetails['age'] = request.form['q15']
