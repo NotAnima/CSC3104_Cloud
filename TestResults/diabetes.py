@@ -137,17 +137,3 @@ def calculate_md5(file_path):
         for chunk in iter(lambda: file.read(4096), b""):
             md5_hash.update(chunk)
     return md5_hash.hexdigest()
-
-if __name__ == "__main__":
-    model = load_model("result.pkl")
-    data = read_data("diabetes_15_columns.csv")
-    scaler = StandardScaler()
-    scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
-
-    X = scaled_features
-    y = data['Diabetes_012']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # answer = model.predict(X_test)
-    test_model(model, X_test, y_test)

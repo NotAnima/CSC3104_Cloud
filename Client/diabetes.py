@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import pickle, hashlib
+from joblib import dump, load
 
 def read_data(path):
     file_path = path
