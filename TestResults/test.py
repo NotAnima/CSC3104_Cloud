@@ -2,6 +2,7 @@ import diabetes, random
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
+from os import environ
 
 def read_data(path):
     file_path = path
@@ -24,8 +25,13 @@ def createPerson(personNum):
     # print(practicePatient)
     return practicePatient
 
+if (environ['MODEL'] != None):
+    modelFile = environ['MODEL']
+else:
+    modelFile = "model.pkl"
+
 data = read_data("diabetes_15_columns.csv")
-model = diabetes.load_model("referenceModel.pkl")
+model = diabetes.load_model(modelFile)
 
 scaler = StandardScaler()
 scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
