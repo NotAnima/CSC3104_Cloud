@@ -5,6 +5,6 @@ services:
     image: dereknan/model-test-x86:latest
     container_name: FDModelTest
     environment:
-      - MODEL=model.pkl
+      - MODEL=baseModel.pkl
     volumes:
-      - /path/on/host:/model
+      - /home/derek/TestingPython:/model
