@@ -5,4 +5,4 @@ services:
     image: dereknan/model-test-x86:latest
     container_name: FDModelTest
     volumes:
-      - /path/on/host:/path/in/container
+      - /path/on/host:/model
