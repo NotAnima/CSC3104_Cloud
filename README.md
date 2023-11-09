@@ -5,6 +5,7 @@ Branch: Integration
 # Client Setup
 1. Directory location: Client
 2. `kubectl apply -f  .`
+3. Make sure that the postgres database is running before using the web server
 
 >[!info]
 All clients will establish a connection with the server on the public domain (dereknan.click) which is running an instance of the server below. As such, deployment of the server is not required but if you still wish to deploy your own server, you may do so.
