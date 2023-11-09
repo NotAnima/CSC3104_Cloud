@@ -13,7 +13,6 @@ class FileTransferServicer(FD_pb2_grpc.ModelServiceServicer):
         weights.append(proper_weight)
         bias.append(request_iterator.bias)
 
-
         # Verbose for logging
         time = getTime()
         print("Received weights: " + time)
@@ -70,7 +69,7 @@ def getTime():
     return formatted_time
 
 def serve():
-    print("Starting up server v0.4")
+    print("Starting up server v1.0")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     FD_pb2_grpc.add_ModelServiceServicer_to_server(FileTransferServicer(), server)
     server.add_insecure_port("[::]:50051")

@@ -27,17 +27,6 @@ def createPerson(personNum):
 data = read_data("diabetes_15_columns.csv")
 model = diabetes.load_model("referenceModel.pkl")
 
-# predict = []
-# person = createPerson(1)
-# for value in person.values():
-#     predict.append(value)
-
-# print(predict)
-# print(len(predict))
-# scaled_features = diabetes.reshape_data(predict)
-# prediction_result = diabetes.make_prediction(model,scaled_features)
-# print(prediction_result)
-
 scaler = StandardScaler()
 scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
 

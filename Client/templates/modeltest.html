@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}The model checklog{% endblock %}
+{% block content %}
+{%  if modelList|length >= 1 %}
+      <div class="container-fluid">
+        {% for model in modelList %}
+        <b><label for="model {{ loop.index+1 }}">Model entry: {{ loop.index }}</label></b>
+        <br><br>
+        <div>
+          Model id: <b>{{ model.id}}</b><br>
+          Entry-date: <b>{{ model.timestamp }}</b><br>
+        </div>
+        {% endfor %}
+        <br>
+        <br><br><br>
+      </div>
+
+{% else %} 
+<div class="container-fluid">
+  <p>Currently {{ modelList|length }} Model's and wasn't inserted properly </p>
+</div>
+{% endif %}
+
+{% endblock %}

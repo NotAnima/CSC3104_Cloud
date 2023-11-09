@@ -20,6 +20,8 @@ spec:
           env:
             - name: DATABASE_URL
               value: "postgresql://user:password@postgres-service:5432/mydatabase"
+            - name: DOMAIN
+              value: "dereknan.click"
 ---
 apiVersion: v1
 kind: Service

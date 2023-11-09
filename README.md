@@ -1,5 +1,40 @@
 # CSC3104_Cloud
 
+All code contents are referred within the [git repository](https://github.com/NotAnima/CSC3104_Cloud)
+Branch: Integration
+# Client Setup
+1. Directory location: Client
+2. `kubectl apply -f  .`
+
+>[!info]
+All clients will establish a connection with the server on the public domain (dereknan.click) which is running an instance of the server below. As such, deployment of the server is not required but if you still wish to deploy your own server, you may do so.
+
+# Server Setup
+If you choose to setup your own server, you will need to edit the `flask-deployment.yml` file
+1. Change the value of the `DOMAIN` environment variable to wherever your destination is.
+
+These instructions are to set up the federated server as shown in the system design in our article. We have already set up the client such that it will automatically connect to the server we have created. If you still wish to deploy the server, the instructions are as follows:
+
+1. Directory location: Server
+2. YAML file used: `server-deployment.yaml`
+3. `kubectl apply -f server-deployment.yaml`
+  
+---
+# Test Result of model
+If you wish to test the accuracy of your model, we have created a script to run showing the accuracy of the model. Instructions to do so are as follows:
+
+Before running the test.py file, retrieve the model file from the client through the command. 
+1. Get name of pod with `kubectl get pods`
+2. Extract model out from system with `kubectl exec -it (name of pod) -- cat /app/model.pkl > (destination on host system)`
+3. Install all dependencies for python using `pip install -r ./requirements.txt`
+
+For demonstration purposes, a `baseModel.pkl` has also been provided within the TestResults directory.
+
+Once the model from the server has been retrieved
+1. Directory location: TestResults
+2. Required Files: diabetes.py, diabetes_15_columns.csv, test.py baseMode.pkl
+3. Simply run test.py `python test.py`
+
 ## Dataset Used
 > [Dataset Used](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset/data?select=diabetes_binary_5050split_health_indicators_BRFSS2015.csv)
 
