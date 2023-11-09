@@ -12,11 +12,13 @@ def read_data(path):
 
 if (environ['MODEL'] != None):
     modelFile = environ['MODEL']
+    fileLocation = "/model/" + modelFile
 else:
-    modelFile = "model.pkl"
+    fileLocation = "model.pkl"
+
 
 data = read_data("diabetes_15_columns.csv")
-model = diabetes.load_model(modelFile)
+model = diabetes.load_model(fileLocation)
 
 scaler = StandardScaler()
 scaled_features = scaler.fit_transform(data.drop('Diabetes_012', axis=1))
