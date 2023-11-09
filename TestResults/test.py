@@ -10,21 +10,6 @@ def read_data(path):
 
     return data
 
-def createPerson(personNum):
-    practicePatient = {}
-    attributes = ["HighBP", "HighChol","CholCheck", "Smoker", "Stroke", "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies", "HvyAlcoholConsump", "DiffWalk", "Sex"]
-    practicePatient["BMI"] = float(random.randint(12, 98))
-    practicePatient["PhysHlth"] = float(random.randint(0, 30))
-    practicePatient["Age"] = float(random.randint(1, 13))
-    # To ensure there's at least 1 of each type for the model to train
-    practicePatient["Diabetes"] = float(personNum % 2)
-
-    for attribute in attributes:
-        practicePatient[attribute] = float(random.randint(0,1))
-    
-    # print(practicePatient)
-    return practicePatient
-
 if (environ['MODEL'] != None):
     modelFile = environ['MODEL']
 else:
